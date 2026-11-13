@@ -66,20 +66,24 @@ O único commit da contribuição é
 [`89146c19fcc5253b5b241e47cbaab30e102a7f04`](https://github.com/guilhermefabio/capivara/commit/89146c19fcc5253b5b241e47cbaab30e102a7f04),
 com a mensagem `feat: implement atomic reservation for items and jobs with SQLite transactions`.
 Ele permanece na branch `fix/atomic-queue-item-job-reservation` do fork
-`guilhermefabio/capivara`, com seu conteúdo e autoria originais:
+`guilhermefabio/capivara`, com seu conteúdo e autoria originais. Os dois
+arquivos completos também estão incluídos nesta PR:
 
-- [core/control_room/servico.py](https://github.com/guilhermefabio/capivara/blob/89146c19fcc5253b5b241e47cbaab30e102a7f04/core/control_room/servico.py):
+- [core/control_room/servico.py](../exemplos/reserva-atomica-item-job/core/control_room/servico.py):
   transação compartilhada e helpers privados.
-- [tests/test_reserva_atomica.py](https://github.com/guilhermefabio/capivara/blob/89146c19fcc5253b5b241e47cbaab30e102a7f04/tests/test_reserva_atomica.py):
+- [tests/test_reserva_atomica.py](../exemplos/reserva-atomica-item-job/tests/test_reserva_atomica.py):
   14 casos de regressão, compatibilidade e concorrência.
 
-O diff contém somente esses dois arquivos, com 364 inserções e 74 remoções.
-Os links usam o SHA completo para identificar exatamente a versão avaliada.
+O diff original contém somente esses dois arquivos, com 364 inserções e 74 remoções.
+As cópias no Community são idênticas aos blobs Git do commit original.
 
-O Community tem histórico próprio e recebe propostas em `ideias/`; não contém
-o pacote `core` nem a suíte Python do oficial. Por isso, este PR adiciona
-somente a RFC. A implementação existente fica referenciada, sem copiar o
-núcleo para uma estrutura incompatível ou unir os históricos dos repositórios.
+O Community tem histórico próprio e recebe propostas em `ideias/` e código
+de exemplos em `exemplos/`. Este PR inclui a RFC e os dois arquivos Python
+completos em `exemplos/reserva-atomica-item-job/`. O
+[README do exemplo](../exemplos/reserva-atomica-item-job/README.md) explica como
+aplicar essas cópias sobre a base oficial e executar a suíte. Assim, o código
+da contribuição pode ser revisado nesta PR e testado a partir dos arquivos
+incluídos, mantendo a organização do Community.
 
 Após aceite pelos mantenedores, o commit pode ser reaproveitado em uma branch
 do oficial baseada em `next`, conforme `CONTRIBUTING.md` e `GOVERNANCA.md`.
@@ -104,8 +108,9 @@ são etapas posteriores ao aceite, não realizadas por esta RFC.
   falhar e deixa estados intermediários observáveis por outros consumidores.
 - **Usar um lock Python:** não coordena agentes em processos diferentes nem
   fornece rollback no banco.
-- **Levar a branch de código diretamente ao Community:** não corresponde à
-  organização deste repositório; a implementação segue para o oficial após aceite.
+- **Unir os históricos dos dois repositórios:** acrescentaria o projeto inteiro
+  ao Community. Os dois arquivos da contribuição ficam no exemplo, com a origem
+  preservada e instruções para aplicação sobre a base oficial.
 
 ## Impacto
 
@@ -141,19 +146,10 @@ prioridade e metadados; filas inexistente, pausada, vazia ou sem executor;
 executor extra; seis consumidores concorrentes com um e com 24 itens,
 verificando reservas únicas, vínculos e ordem exata do round-robin.
 
-Para validar a implementação referenciada em um novo clone, com Python >=3.11
-e ambiente virtual ativo:
-
-```bash
-git clone https://github.com/guilhermefabio/capivara.git capivara-reserva-atomica
-cd capivara-reserva-atomica
-git checkout --detach 89146c19fcc5253b5b241e47cbaab30e102a7f04
-python -m pip install -r requirements.txt pytest ruff
-python -m pytest tests/test_reserva_atomica.py
-python -m pytest
-python -m ruff check app core settings tests bot_test
-python -m compileall -q app core settings tests bot_test
-```
+Para validar os arquivos incluídos nesta PR, siga o
+[passo a passo do exemplo](../exemplos/reserva-atomica-item-job/README.md#como-executar).
+Ele prepara um clone isolado da base oficial e copia os dois arquivos locais
+do Community para executar os testes, sem depender do fork de origem.
 
 Para reproduzir o defeito, use um segundo clone na base `a4ea91d59a7c2808b5fb66c26454c5164e726e67`,
 copie apenas `tests/test_reserva_atomica.py` da implementação referenciada e rode
@@ -162,8 +158,8 @@ Esse teste deve falhar na base e passar com a correção. O `tests/conftest.py`
 isola os bancos em diretórios temporários.
 
 O Community não possui suíte executável ou CI configurada nesta base. A
-validação deste PR verifica o template, as referências, o escopo e a formatação
-da RFC; os resultados Python acima pertencem ao código referenciado.
+validação do código incluído usa a infraestrutura de testes da base oficial;
+o template, as referências, o escopo e a formatação da RFC também são verificados.
 
 ## Documentação
 
