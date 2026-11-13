@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Repositório oficial (stable)
+    url: https://github.com/capivara-rpa/capivara
+    about: Código, documentação, releases e instalação da versão estável.
+  - name: Discussões da comunidade
+    url: https://github.com/capivara-rpa/capivara-community/discussions
+    about: Ideias abertas, dúvidas e conversas antes de virar uma proposta.
+  - name: Guia de instalação e uso
+    url: https://github.com/capivara-rpa/capivara/blob/main/GUIA.md
+    about: Passo a passo para instalar e rodar a Capivara.
+  - name: Segurança
+    url: https://github.com/capivara-rpa/capivara-community/security/policy
+    about: Como reportar vulnerabilidades de forma privada.

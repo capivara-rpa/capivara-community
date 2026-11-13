@@ -1,0 +1,74 @@
+name: Bug
+description: Relate um comportamento inesperado na versão estável ou em uma proposta.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Antes de abrir, confira se já existe uma issue parecida.
+        Remova tokens, senhas, caminhos pessoais e dados de clientes dos logs.
+
+  - type: input
+    id: versao
+    attributes:
+      label: Versão ou commit
+      description: "Ex.: v1.1.0, main em a4ea91d, branch next."
+      placeholder: v1.1.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: ambiente
+    attributes:
+      label: Ambiente
+      options:
+        - macOS
+        - Windows
+        - Linux
+        - Docker
+        - Outro
+    validations:
+      required: true
+
+  - type: textarea
+    id: passos
+    attributes:
+      label: Passos para reproduzir
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: esperado
+    attributes:
+      label: Comportamento esperado
+    validations:
+      required: true
+
+  - type: textarea
+    id: real
+    attributes:
+      label: Comportamento atual
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs ou trace
+      description: Cole apenas o trecho relevante, sem segredos.
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: conduta
+    attributes:
+      label: Código de conduta
+      options:
+        - label: Concordo em seguir o CODE_OF_CONDUCT.md
+          required: true

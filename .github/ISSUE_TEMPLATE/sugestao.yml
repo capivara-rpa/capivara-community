@@ -1,0 +1,78 @@
+name: Sugestão de melhoria
+description: Proponha uma melhoria para o motor, a Control Room, a documentação ou os exemplos.
+title: "[Sugestão]: "
+labels: ["sugestao"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por contribuir com a Capivara. Quanto mais contexto, mais fácil avaliar.
+        Não inclua tokens, senhas ou dados de clientes.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options:
+        - Motor / funções do RPA
+        - Control Room
+        - Filas e agendamentos
+        - Credenciais e segurança
+        - Documentação
+        - Exemplo ou plugin
+        - Integração com outra ferramenta
+        - Outro
+    validations:
+      required: true
+
+  - type: textarea
+    id: problema
+    attributes:
+      label: Qual problema você quer resolver?
+      description: Descreva a dor, o cenário e quem é afetado.
+      placeholder: Hoje eu preciso fazer X manualmente porque...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposta
+    attributes:
+      label: Como você imagina a solução?
+      description: Descreva a ideia, a API ou o comportamento esperado.
+      placeholder: Seria útil ter uma função `...` que...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Alternativas consideradas
+      description: Você tentou outra abordagem? Existe contorno hoje?
+    validations:
+      required: false
+
+  - type: textarea
+    id: impacto
+    attributes:
+      label: Impacto esperado
+      description: Quem se beneficia, o que melhora e quais riscos você vê.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribuir
+    attributes:
+      label: Como você pode ajudar?
+      options:
+        - label: Posso abrir um PR
+        - label: Posso testar a proposta
+        - label: Posso escrever ou revisar documentação
+        - label: Posso criar um exemplo de uso
+
+  - type: checkboxes
+    id: conduta
+    attributes:
+      label: Código de conduta
+      options:
+        - label: Concordo em seguir o CODE_OF_CONDUCT.md
+          required: true
