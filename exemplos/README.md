@@ -20,6 +20,11 @@ projetos gigantes.
 - Um exemplo não entra automaticamente no núcleo: ele é avaliado e pode virar
   documentação, template ou função oficial.
 
+## Exemplos disponíveis
+
+- [Reserva atômica de item e job](reserva-atomica-item-job/README.md) — transação
+  SQLite para reservar item e job da Control Room sem estados intermediários.
+
 ## Como enviar
 
 Abra uma issue com o template **Sugestão de melhoria** escolhendo “Exemplo ou
