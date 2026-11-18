@@ -45,6 +45,7 @@ versão estável; a `next` recebe o que está em validação.
 ## Links
 
 - Site: <https://arthurfaria.tech/capivara/index.html>
+- Novidades: [`CHANGELOG.md`](CHANGELOG.md)
 - Repositório oficial: <https://github.com/capivara-rpa/capivara>
 - Guia de instalação e uso: <https://github.com/capivara-rpa/capivara/blob/main/GUIA.md>
 - Catálogo de funções: <https://github.com/capivara-rpa/capivara/blob/main/data/docs/CATALOGO_FUNCOES.md>
