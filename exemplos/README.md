@@ -24,6 +24,8 @@ projetos gigantes.
 
 - [Reserva atômica de item e job](reserva-atomica-item-job/README.md) — transação
   SQLite para reservar item e job da Control Room sem estados intermediários.
+- [Auto-atualização de automações Git na Lagoa](auto-atualizacao-git-lagoa/README.md) —
+  polling com `git ls-remote`, troca atômica e correção do vazamento de FDs do SQLite.
 
 ## Como enviar
 

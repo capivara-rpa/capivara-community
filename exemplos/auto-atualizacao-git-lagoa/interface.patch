@@ -1,0 +1,64 @@
+diff --git a/core/control_room/estatico/index.html b/core/control_room/estatico/index.html
+index 8621de6..95c4fed 100644
+--- a/core/control_room/estatico/index.html
++++ b/core/control_room/estatico/index.html
+@@ -289,6 +289,10 @@
+                                     <button type="submit" class="botao-primario">Instalar do Git</button>
+                                     <span class="dica">Repositório <strong>público</strong> com <code>rpa.json</code> na raiz.</span>
+                                 </form>
++                                <div class="form-linha">
++                                    <button type="button" class="botao-secundario" onclick="verificarAtualizacoes()">Verificar atualizações agora</button>
++                                    <span class="dica">Automações marcadas como <strong>Auto</strong> são checadas periodicamente no Git.</span>
++                                </div>
+                                 <div id="pacote-resultado" class="oculto"></div>
+ 
+                                 <div class="tabela-envolucro">
+diff --git a/core/control_room/estatico/painel.js b/core/control_room/estatico/painel.js
+index 8cada5e..a5e5151 100644
+--- a/core/control_room/estatico/painel.js
++++ b/core/control_room/estatico/painel.js
+@@ -930,9 +930,13 @@ function renderAutomacoes() {
+         return;
+     }
+     el.automacoes.innerHTML = itens.map((p) => {
+-        const doGit = String(p.origem || "").startsWith("https://");
++        const doGit = Boolean(String(p.origem || "").trim());
++        const shaCurto = String(p.commit_sha || "").slice(0, 8);
++        const auto = Boolean(p.auto_atualizar);
+         const origemTxt = doGit
+             ? `<span class="tag git">git</span> <span class="obs">${escapar(p.origem_ref || "padrão")}</span>`
++                + (shaCurto ? `<br><span class="obs" title="${escapar(p.commit_sha)}">#${shaCurto}</span>` : "")
++                + `<br><button class="acao" onclick="alternarAutoAtualizar(${Number(p.id)}, ${auto ? "false" : "true"})">Auto: ${auto ? "sim" : "não"}</button>`
+             : '<span class="tag pacote">pacote</span>';
+         const btnAtualizar = doGit
+             ? `<button class="acao" onclick="atualizarAutomacaoGit('${escapar(p.origem)}','${escapar(p.origem_ref || "")}')">Atualizar</button>`
+@@ -1039,6 +1043,29 @@ async function atualizarAutomacaoGit(url, ref) {
+     }
+ }
+ 
++async function alternarAutoAtualizar(processoId, ativo) {
++    try {
++        await enviarJSON(`/api/orq/processos/${Number(processoId)}/auto-atualizar`, { ativo });
++        carregar();
++    } catch (erro) {
++        alert("Falha ao alterar auto-atualização: " + erro.message);
++    }
++}
++
++async function verificarAtualizacoes() {
++    el.pacoteResultado.classList.remove("oculto");
++    el.pacoteResultado.textContent = "Verificando repositórios…";
++    try {
++        const r = await enviarJSON("/api/orq/automacoes/verificar", {});
++        el.pacoteResultado.textContent =
++            `Verificados: ${r.verificados} · Atualizados: ${r.atualizados} · ` +
++            `Sem mudança: ${r.ignorados} · Erros: ${r.erros}`;
++        carregar();
++    } catch (erro) {
++        el.pacoteResultado.textContent = "Falha: " + erro.message;
++    }
++}
++
+ async function removerAutomacao(nome) {
+     if (!confirm(`Remover a automação "${nome}" (arquivos + catálogo)?`)) return;
+     try {

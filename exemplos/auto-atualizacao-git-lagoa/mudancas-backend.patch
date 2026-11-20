@@ -1,0 +1,601 @@
+diff --git a/core/control_room/banco.py b/core/control_room/banco.py
+index 8fd898a..30d7eb9 100644
+--- a/core/control_room/banco.py
++++ b/core/control_room/banco.py
+@@ -14,8 +14,11 @@ passo de cada job.
+ from __future__ import annotations
+ 
+ import sqlite3
++from collections.abc import Iterator
++from contextlib import contextmanager
+ from typing import Any
+ 
++from core.monitor.banco import agora_iso
+ from settings.parametros import BANCO_ORQUESTRADOR
+ 
+ # ----------------------------------------------------------------------
+@@ -337,17 +340,34 @@ _COLUNAS_EXTRA = {
+         ("origem", "TEXT"),
+         ("origem_ref", "TEXT"),
+         ("variaveis", "TEXT"),
++        ("commit_sha", "TEXT"),
++        ("auto_atualizar", "INTEGER NOT NULL DEFAULT 0"),
++        ("ultima_atualizacao", "TEXT"),
++        ("ultimo_erro", "TEXT"),
+     ],
+ }
+ 
+ 
+-def conectar() -> sqlite3.Connection:
+-    """Abre conexão com o banco da Lagoa (cria a pasta se preciso)."""
++@contextmanager
++def conectar() -> Iterator[sqlite3.Connection]:
++    """Abre conexão com o banco da Lagoa e sempre fecha ao sair do ``with``.
++
++    O context manager nativo do ``sqlite3.Connection`` só faz commit/rollback;
++    não fecha a conexão. Sem o ``close()`` explícito, cada heartbeat da Lagoa
++    vaza um file descriptor até estourar o limite do launchd.
++    """
+     BANCO_ORQUESTRADOR.parent.mkdir(parents=True, exist_ok=True)
+     conexao = sqlite3.connect(BANCO_ORQUESTRADOR, timeout=10)
+-    conexao.row_factory = sqlite3.Row
+-    conexao.execute("PRAGMA foreign_keys = ON")
+-    return conexao
++    try:
++        conexao.row_factory = sqlite3.Row
++        conexao.execute("PRAGMA foreign_keys = ON")
++        yield conexao
++        conexao.commit()
++    except BaseException:
++        conexao.rollback()
++        raise
++    finally:
++        conexao.close()
+ 
+ 
+ def iniciar_banco() -> None:
+@@ -393,6 +413,44 @@ def listar_processos() -> list[dict[str, Any]]:
+         return _linhas(conexao, "SELECT * FROM processos ORDER BY nome")
+ 
+ 
++def listar_processos_auto_atualizar() -> list[dict[str, Any]]:
++    """Processos de repositório Git marcados para atualização automática."""
++    with conectar() as conexao:
++        return _linhas(
++            conexao,
++            "SELECT * FROM processos WHERE auto_atualizar = 1 AND origem IS NOT NULL AND origem != '' ORDER BY nome",
++        )
++
++
++def definir_auto_atualizar(processo_id: int, ativo: bool) -> bool:
++    with conectar() as conexao:
++        cursor = conexao.execute(
++            "UPDATE processos SET auto_atualizar = ? WHERE id = ?",
++            (int(bool(ativo)), processo_id),
++        )
++        return cursor.rowcount > 0
++
++
++def registrar_resultado_atualizacao(
++    processo_id: int,
++    sha: str | None = None,
++    erro: str | None = None,
++) -> bool:
++    """Registra o SHA visto na última verificação (ou o erro, se falhou)."""
++    with conectar() as conexao:
++        cursor = conexao.execute(
++            """
++            UPDATE processos
++               SET commit_sha = COALESCE(?, commit_sha),
++                   ultima_atualizacao = ?,
++                   ultimo_erro = ?
++             WHERE id = ?
++            """,
++            (sha, agora_iso(), (erro or "")[:500] or None, processo_id),
++        )
++        return cursor.rowcount > 0
++
++
+ def obter_processo(processo_id: int) -> dict[str, Any] | None:
+     with conectar() as conexao:
+         return _linha(conexao, "SELECT * FROM processos WHERE id = ?", (processo_id,))
+diff --git a/core/control_room/pacote.py b/core/control_room/pacote.py
+index c21f67f..2c87240 100644
+--- a/core/control_room/pacote.py
++++ b/core/control_room/pacote.py
+@@ -40,6 +40,7 @@ import re
+ import subprocess
+ import sys
+ import tempfile
++import uuid
+ import zipfile
+ from pathlib import Path
+ from typing import Any
+@@ -291,31 +292,111 @@ def _clonar(url: str, ref: str | None, destino: Path) -> None:
+         )
+ 
+ 
++def _ambiente_git(destino: Path) -> dict[str, str]:
++    return {
++        "PATH": os.environ.get("PATH", "/usr/bin:/bin:/usr/local/bin"),
++        "HOME": os.environ.get("HOME", str(destino)),
++        "GIT_TERMINAL_PROMPT": "0",
++        "GIT_ASKPASS": "echo",
++        "GIT_LFS_SKIP_SMUDGE": "1",
++    }
++
++
++def sha_remoto(url: str, ref: str | None = None) -> str:
++    """Retorna o SHA do commit no topo da branch/tag remota (``git ls-remote``)."""
++    url = _validar_url_git(url)
++    ref = _validar_ref(ref)
++    if shutil.which("git") is None:
++        raise ValueError(
++            "O comando 'git' não está instalado nesta máquina. "
++            "Instale o Git para atualizar automações por repositório."
++        )
++    referencia = f"refs/heads/{ref}" if ref else "HEAD"
++    processo = subprocess.run(
++        ["git", "ls-remote", url, referencia],
++        capture_output=True,
++        text=True,
++        timeout=_CLONE_TIMEOUT,
++        env=_ambiente_git(Path(os.getcwd())),
++    )
++    if processo.returncode != 0:
++        detalhe = (processo.stderr or "").strip().splitlines()
++        resumo = detalhe[-1] if detalhe else "erro desconhecido"
++        raise ValueError(f"Não foi possível consultar o repositório. ({resumo})")
++    linhas = [linha for linha in processo.stdout.splitlines() if linha.strip()]
++    if not linhas:
++        raise ValueError(f"Branch/tag '{ref or 'padrão'}' não encontrada no repositório.")
++    return linhas[0].split()[0].strip()
++
++
++def _sha_local(repo: Path) -> str | None:
++    """SHA do commit já clonado (evita um segundo acesso à rede)."""
++    processo = subprocess.run(
++        ["git", "-C", str(repo), "rev-parse", "HEAD"],
++        capture_output=True,
++        text=True,
++        timeout=_CLONE_TIMEOUT,
++        env=_ambiente_git(repo),
++    )
++    if processo.returncode != 0:
++        return None
++    return processo.stdout.strip() or None
++
++
+ def _instalar_do_diretorio(
+     origem_pasta: Path,
+     destino_base: Path,
+     origem: str | None = None,
+     origem_ref: str | None = None,
+     substituir: bool = False,
++    commit_sha: str | None = None,
+ ) -> dict[str, Any]:
+     """Valida o manifesto de uma pasta de robô, instala e cadastra o processo."""
+     manifest = _carregar_manifesto(origem_pasta)
+     _validar_entrada(origem_pasta, manifest)
+     nome = str(manifest["nome"]).strip().lower()
+ 
++    destino_base.mkdir(parents=True, exist_ok=True)
+     destino_robo = destino_base / nome
+-    if destino_robo.exists():
+-        if not substituir:
+-            raise ValueError(
+-                f"Robô '{nome}' já instalado. Use 'Atualizar' ou remova app/robos/{nome}."
+-            )
+-        shutil.rmtree(destino_robo)
+-
+-    shutil.copytree(origem_pasta, destino_robo)
+-    # a pasta .git não faz parte do robô instalado
+-    git_dir = destino_robo / ".git"
+-    if git_dir.exists():
+-        shutil.rmtree(git_dir, ignore_errors=True)
++    if destino_robo.exists() and not substituir:
++        raise ValueError(
++            f"Robô '{nome}' já instalado. Use 'Atualizar' ou remova app/robos/{nome}."
++        )
++
++    # Troca atômica: tudo acontece dentro de PASTA_ROBOS (mesmo volume), então
++    # rename não cruza dispositivos. Um job em execução continua lendo a pasta
++    # antiga até terminar; o próximo já pega a nova.
++    sufixo = uuid.uuid4().hex[:12]
++    staging = destino_base / f".rpa-novo-{nome}-{sufixo}"
++    backup = destino_base / f".rpa-antigo-{nome}-{sufixo}"
++    venv_guardado = destino_base / f".rpa-venv-{nome}-{sufixo}"
++    try:
++        shutil.copytree(origem_pasta, staging)
++        git_dir = staging / ".git"
++        if git_dir.exists():
++            shutil.rmtree(git_dir, ignore_errors=True)
++
++        if destino_robo.exists():
++            venv_atual = destino_robo / ".venv"
++            if venv_atual.exists():
++                venv_atual.rename(venv_guardado)
++            destino_robo.rename(backup)
++        staging.rename(destino_robo)
++        if venv_guardado.exists():
++            venv_guardado.rename(destino_robo / ".venv")
++    except BaseException:
++        if backup.exists() and not destino_robo.exists():
++            backup.rename(destino_robo)
++        if venv_guardado.exists():
++            destino = destino_robo / ".venv"
++            if destino.exists():
++                shutil.rmtree(destino, ignore_errors=True)
++            venv_guardado.rename(destino)
++        raise
++    finally:
++        shutil.rmtree(staging, ignore_errors=True)
++        shutil.rmtree(backup, ignore_errors=True)
++        shutil.rmtree(venv_guardado, ignore_errors=True)
+ 
+     _garantir_importavel(destino_base)
+     processo = servico.criar_processo(
+@@ -325,6 +406,7 @@ def _instalar_do_diretorio(
+         usa_navegador=bool(manifest.get("usa_navegador", False)),
+         origem=origem,
+         origem_ref=origem_ref,
++        commit_sha=commit_sha,
+     )
+     logger.success(f"[pacote] robô '{nome}' v{manifest.get('versao', '')} instalado em {destino_robo}")
+     return {
+@@ -334,6 +416,7 @@ def _instalar_do_diretorio(
+         "processo": processo,
+         "origem": origem,
+         "origem_ref": origem_ref,
++        "commit_sha": commit_sha,
+     }
+ 
+ 
+@@ -350,7 +433,13 @@ def instalar_git(
+         clonado = Path(tmp) / "repo"
+         _clonar(url, ref, clonado)
+         # se o repo tiver uma subpasta com rpa.json na raiz, usa a raiz
+-        return _instalar_do_diretorio(clonado, destino_base, origem=url, origem_ref=ref)
++        return _instalar_do_diretorio(
++            clonado,
++            destino_base,
++            origem=url,
++            origem_ref=ref,
++            commit_sha=_sha_local(clonado),
++        )
+ 
+ 
+ def atualizar_git(
+@@ -366,7 +455,12 @@ def atualizar_git(
+         clonado = Path(tmp) / "repo"
+         _clonar(url, ref, clonado)
+         return _instalar_do_diretorio(
+-            clonado, destino_base, origem=url, origem_ref=ref, substituir=True
++            clonado,
++            destino_base,
++            origem=url,
++            origem_ref=ref,
++            substituir=True,
++            commit_sha=_sha_local(clonado),
+         )
+ 
+ 
+diff --git a/core/control_room/servico.py b/core/control_room/servico.py
+index 7548e50..557a56c 100644
+--- a/core/control_room/servico.py
++++ b/core/control_room/servico.py
+@@ -39,6 +39,7 @@ from core.control_room.banco import (
+     MAQUINA_ROTULO,
+     conectar,
+     contagem_itens,
++    definir_auto_atualizar as _definir_auto_atualizar_banco,
+     listar_assets as _listar_assets_brutos,
+     listar_auditoria as _listar_auditoria_brutas,
+     listar_empresas as _listar_empresas_brutas,
+@@ -53,6 +54,7 @@ from core.control_room.banco import (
+     listar_permissoes_do_papel as _listar_permissoes_do_papel_brutas,
+     listar_permissoes_do_usuario as _listar_permissoes_do_usuario_brutas,
+     listar_processos as _listar_processos_brutos,
++    listar_processos_auto_atualizar as _listar_processos_auto_atualizar_brutos,
+     listar_processos_fila,
+     listar_sessoes as _listar_sessoes_brutas,
+     listar_triggers as _listar_triggers_brutos,
+@@ -73,6 +75,7 @@ from core.control_room.banco import (
+     obter_trigger,
+     obter_usuario,
+     obter_usuario_por_email,
++    registrar_resultado_atualizacao as _registrar_resultado_atualizacao_banco,
+ )
+ from core.monitor.banco import agora_iso
+ from settings.parametros import (
+@@ -332,21 +335,33 @@ def criar_processo(
+     usa_navegador: bool = False,
+     origem: str | None = None,
+     origem_ref: str | None = None,
++    commit_sha: str | None = None,
+ ) -> dict[str, Any]:
+     """Cadastra (ou atualiza) um processo no catálogo."""
+     with conectar() as conexao:
+         conexao.execute(
+             """
+-            INSERT INTO processos (nome, descricao, fluxo, usa_navegador, ativo, criado_em, origem, origem_ref)
+-            VALUES (?, ?, ?, ?, 1, ?, ?, ?)
++            INSERT INTO processos
++                (nome, descricao, fluxo, usa_navegador, ativo, criado_em, origem, origem_ref, commit_sha)
++            VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?)
+             ON CONFLICT (nome) DO UPDATE SET
+                 descricao = excluded.descricao,
+                 fluxo = excluded.fluxo,
+                 usa_navegador = excluded.usa_navegador,
+                 origem = COALESCE(excluded.origem, processos.origem),
+-                origem_ref = COALESCE(excluded.origem_ref, processos.origem_ref)
++                origem_ref = COALESCE(excluded.origem_ref, processos.origem_ref),
++                commit_sha = COALESCE(excluded.commit_sha, processos.commit_sha)
+             """,
+-            (nome, descricao, fluxo, int(usa_navegador), agora_iso(), origem, origem_ref),
++            (
++                nome,
++                descricao,
++                fluxo,
++                int(usa_navegador),
++                agora_iso(),
++                origem,
++                origem_ref,
++                commit_sha,
++            ),
+         )
+     logger.debug(f"[lagoa] processo '{nome}' cadastrado")
+     processo = next((p for p in _listar_processos_brutos() if p["nome"] == nome), {})
+@@ -357,6 +372,47 @@ def listar_processos() -> list[dict[str, Any]]:
+     return [_processo_publico(p) or {} for p in _listar_processos_brutos()]
+ 
+ 
++def listar_processos_auto_atualizar() -> list[dict[str, Any]]:
++    """Automações de Git com atualização automática ligada."""
++    return [_processo_publico(p) or {} for p in _listar_processos_auto_atualizar_brutos()]
++
++
++def definir_auto_atualizar(
++    processo_id: int,
++    ativo: bool,
++    ator: str | None = None,
++) -> bool:
++    """Liga/desliga o polling de Git para uma automação."""
++    if not _definir_auto_atualizar_banco(processo_id, ativo):
++        return False
++    registrar_auditoria(
++        "auto_atualizar",
++        "processo",
++        ator=ator,
++        detalhe=f"processo {processo_id}: auto_atualizar={bool(ativo)}",
++    )
++    return True
++
++
++def registrar_resultado_atualizacao(
++    processo_id: int,
++    sha: str | None = None,
++    erro: str | None = None,
++    ator: str = "lagoa",
++) -> bool:
++    """Registra SHA/erro da verificação de Git na automação e na auditoria."""
++    if not _registrar_resultado_atualizacao_banco(processo_id, sha=sha, erro=erro):
++        return False
++    registrar_auditoria(
++        "atualizacao_git",
++        "processo",
++        ator=ator,
++        resultado="erro" if erro else "ok",
++        detalhe=f"processo {processo_id}: {erro or (sha or '')}"[:500],
++    )
++    return True
++
++
+ def obter_variaveis_processo(processo_id: int) -> dict[str, str] | None:
+     """Variáveis de ambiente configuradas para uma automação."""
+     processo = obter_processo(processo_id)
+diff --git a/core/control_room/servidor.py b/core/control_room/servidor.py
+index ecb4794..302cdfe 100644
+--- a/core/control_room/servidor.py
++++ b/core/control_room/servidor.py
+@@ -29,12 +29,14 @@ from urllib.parse import unquote, urlparse
+ from loguru import logger
+ 
+ from core.control_room import servico
++from core.control_room.atualizador import iniciar_atualizador, verificar_atualizacoes
+ from core.control_room.banco import iniciar_banco as iniciar_banco_orq
+ from core.monitor.banco import iniciar_banco as iniciar_banco_monitor
+ from core.monitor.servidor import PASTA_ESTATICO as PASTA_MONITOR
+ from core.monitor.servidor import ManipuladorPainel, ThreadingHTTPServer, _aplicar_tls
+ from settings.parametros import (
+     ABRIR_PAINEL,
++    AUTO_ATUALIZAR,
+     HOST_LAGOA,
+     INTERVALO_TRIGGERS,
+     LAGOA_AUTH,
+@@ -558,6 +560,16 @@ class ManipuladorControlRoom(ManipuladorPainel):
+             and partes[4] == "variaveis"
+         ):
+             self._salvar_variaveis_processo(partes[3], corpo)
++        # /api/orq/processos/<id>/auto-atualizar
++        elif (
++            len(partes) == 5
++            and partes[:3] == ["api", "orq", "processos"]
++            and partes[4] == "auto-atualizar"
++        ):
++            self._acao_auto_atualizar(partes[3], corpo)
++        # /api/orq/automacoes/verificar  (roda o polling agora)
++        elif partes == ["api", "orq", "automacoes", "verificar"]:
++            self._json(200, verificar_atualizacoes())
+         # /api/orq/automacoes/<nome>/remover
+         elif (
+             len(partes) == 5
+@@ -960,6 +972,22 @@ class ManipuladorControlRoom(ManipuladorPainel):
+             return
+         self._json(200, {"processo_id": int(pedaco_id), "variaveis": variaveis})
+ 
++    def _acao_auto_atualizar(self, pedaco_id: str, corpo: dict) -> None:
++        if not pedaco_id.isdigit():
++            self._json(400, {"erro": "Id de processo inválido."})
++            return
++        ativo = corpo.get("ativo", True)
++        if not isinstance(ativo, bool):
++            self._json(400, {"erro": "Informe 'ativo' como verdadeiro/falso."})
++            return
++        if servico.obter_processo(int(pedaco_id)) is None:
++            self._json(404, {"erro": "Processo não encontrado."})
++            return
++        servico.definir_auto_atualizar(
++            int(pedaco_id), ativo, ator=corpo.get("ator") or "painel"
++        )
++        self._json(200, {"processo_id": int(pedaco_id), "auto_atualizar": ativo})
++
+     def _criar_job(self, corpo: dict) -> None:
+         processo_id = corpo.get("processo_id")
+         maquina_id = corpo.get("maquina_id")
+@@ -1058,6 +1086,8 @@ def iniciar_lagoa(
+     servico.garantir_admin_padrao()
+     servico.limpar_sessoes_expiradas()
+     _iniciar_agendador()
++    if AUTO_ATUALIZAR:
++        iniciar_atualizador()
+ 
+     servidor = ThreadingHTTPServer((host, porta), ManipuladorControlRoom)
+     esquema = "https" if _aplicar_tls(servidor, cert, chave) else "http"
+diff --git a/core/monitor/banco.py b/core/monitor/banco.py
+index aa3732e..070db1d 100644
+--- a/core/monitor/banco.py
++++ b/core/monitor/banco.py
+@@ -15,6 +15,8 @@ Os status seguem os pedidos do projeto: ``iniciado``, ``processando``,
+ from __future__ import annotations
+ 
+ import sqlite3
++from collections.abc import Iterator
++from contextlib import contextmanager
+ from datetime import datetime
+ from typing import Any
+ 
+@@ -107,13 +109,26 @@ def agora_iso() -> str:
+     return datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+ 
+ 
+-def conectar() -> sqlite3.Connection:
+-    """Abre uma conexão com o banco do monitor (cria a pasta se preciso)."""
++@contextmanager
++def conectar() -> Iterator[sqlite3.Connection]:
++    """Abre conexão com o banco do monitor e sempre fecha ao sair do ``with``.
++
++    O context manager nativo do ``sqlite3.Connection`` só faz commit/rollback;
++    não fecha a conexão. Sem o ``close()`` explícito, cada passo do trace vaza
++    um file descriptor.
++    """
+     BANCO_MONITOR.parent.mkdir(parents=True, exist_ok=True)
+     conexao = sqlite3.connect(BANCO_MONITOR, timeout=10)
+-    conexao.row_factory = sqlite3.Row
+-    conexao.execute("PRAGMA foreign_keys = ON")
+-    return conexao
++    try:
++        conexao.row_factory = sqlite3.Row
++        conexao.execute("PRAGMA foreign_keys = ON")
++        yield conexao
++        conexao.commit()
++    except BaseException:
++        conexao.rollback()
++        raise
++    finally:
++        conexao.close()
+ 
+ 
+ def iniciar_banco() -> None:
+diff --git a/settings/parametros.py b/settings/parametros.py
+index 3345397..1c005e4 100644
+--- a/settings/parametros.py
++++ b/settings/parametros.py
+@@ -153,6 +153,12 @@ SEGUNDOS_OFFLINE = _como_int(os.getenv("SEGUNDOS_OFFLINE"), 20)
+ # Intervalo (segundos) da verificação de agendamentos (triggers)
+ INTERVALO_TRIGGERS = _como_int(os.getenv("INTERVALO_TRIGGERS"), 15)
+ 
++# Atualização automática das automações instaladas de repositório Git.
++# A Lagoa consulta `git ls-remote` no intervalo abaixo e troca o código quando o
++# commit da branch muda. Cada automação precisa estar marcada como auto-atualizável.
++AUTO_ATUALIZAR = _como_bool(os.getenv("AUTO_ATUALIZAR"), True)
++INTERVALO_ATUALIZACAO = max(30, _como_int(os.getenv("INTERVALO_ATUALIZACAO"), 300))
++
+ # URL da Lagoa usada pelos robôs/CLI para consumir vault e filas
+ LAGOA_URL = _env("LAGOA_URL", "CONTROL_ROOM_URL", padrao="http://127.0.0.1:8765").rstrip("/")
+ CONTROL_ROOM_URL = LAGOA_URL
+diff --git a/tests/test_control_room.py b/tests/test_control_room.py
+index 882f0c6..91190a9 100644
+--- a/tests/test_control_room.py
++++ b/tests/test_control_room.py
+@@ -677,3 +677,37 @@ def test_ambiente_com_variaveis_aplica_e_restaura(monkeypatch):
+ 
+     assert os.environ["CAPIVARA_EXISTENTE"] == "original"
+     assert "CAPIVARA_NOVA" not in os.environ
++
++
++def test_conectar_fecha_conexao_e_faz_rollback(monkeypatch):
++    import sqlite3
++
++    import pytest
++
++    conexoes = []
++    connect_original = sqlite3.connect
++
++    def connect_espiado(*args, **kwargs):
++        conexao = connect_original(*args, **kwargs)
++        conexoes.append(conexao)
++        return conexao
++
++    monkeypatch.setattr(banco_orq.sqlite3, "connect", connect_espiado)
++
++    for _ in range(20):
++        with banco_orq.conectar():
++            pass
++
++    assert len(conexoes) == 20
++    for conexao in conexoes:
++        with pytest.raises(sqlite3.ProgrammingError):
++            conexao.execute("SELECT 1")
++
++    with pytest.raises(RuntimeError):
++        with banco_orq.conectar() as conexao:
++            conexao.execute(
++                "INSERT INTO maquinas (nome, ultima_atividade, criado_em) VALUES ('tmp', 'x', 'x')"
++            )
++            raise RuntimeError("falha de propósito")
++
++    assert banco_orq.obter_maquina_por_nome("tmp") is None
+diff --git a/tests/test_monitor.py b/tests/test_monitor.py
+index 6eec20f..cdfd441 100644
+--- a/tests/test_monitor.py
++++ b/tests/test_monitor.py
+@@ -75,3 +75,28 @@ def test_revisao_muda_ao_criar_execucao_e_passo():
+ 
+     assert r0 != r1
+     assert r1 != r2
++
++
++def test_conectar_fecha_conexao(monkeypatch):
++    import sqlite3
++
++    import pytest
++
++    conexoes = []
++    connect_original = sqlite3.connect
++
++    def connect_espiado(*args, **kwargs):
++        conexao = connect_original(*args, **kwargs)
++        conexoes.append(conexao)
++        return conexao
++
++    monkeypatch.setattr(banco.sqlite3, "connect", connect_espiado)
++
++    for _ in range(20):
++        with banco.conectar():
++            pass
++
++    assert len(conexoes) == 20
++    for conexao in conexoes:
++        with pytest.raises(sqlite3.ProgrammingError):
++            conexao.execute("SELECT 1")
