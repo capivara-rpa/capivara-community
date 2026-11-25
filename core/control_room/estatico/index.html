@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Capivara · Lagoa</title>
+    <link rel="icon" type="image/svg+xml" href="img/logo-capivara.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="sidebar-topo">
+                <a class="sidebar-logo" href="/">
+                    <img src="img/logo-capivara.svg" alt="Capivara" width="40" height="40" onerror="this.style.display='none'">
+                    <span class="sidebar-marca">
+                        <span class="sidebar-logo-text">Capivara</span>
+                        <span class="sidebar-logo-sub">Lagoa</span>
+                    </span>
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+                <p class="nav-titulo">Menu</p>
+                <ul class="nav-lista">
+                    <li class="nav-item ativo" data-secao="jobs">
+                        <button type="button" class="nav-link" data-secao="jobs">
+                            <span class="nav-icon">▤</span>
+                            <span class="nav-texto">Lagoa</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" data-secao="dispositivos">
+                        <button type="button" class="nav-link" data-secao="dispositivos">
+                            <span class="nav-icon">▦</span>
+                            <span class="nav-texto">Dispositivos</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" data-secao="agendamentos">
+                        <button type="button" class="nav-link" data-secao="agendamentos">
+                            <span class="nav-icon">🗓</span>
+                            <span class="nav-texto">Agendamentos</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" data-secao="automacoes">
+                        <button type="button" class="nav-link" data-secao="automacoes">
+                            <span class="nav-icon">⚙</span>
+                            <span class="nav-texto">Automações</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" data-secao="filas">
+                        <button type="button" class="nav-link" data-secao="filas">
+                            <span class="nav-icon">☰</span>
+                            <span class="nav-texto">Filas</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" data-secao="assets">
+                        <button type="button" class="nav-link" data-secao="assets">
+                            <span class="nav-icon">🔑</span>
+                            <span class="nav-texto">Credenciais</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" data-secao="acessos">
+                        <button type="button" class="nav-link" data-secao="acessos">
+                            <span class="nav-icon">👤</span>
+                            <span class="nav-texto">Acessos</span>
+                        </button>
+                    </li>
+                </ul>
+                <p class="nav-titulo">Sistema</p>
+                <ul class="nav-lista">
+                    <li class="nav-item" data-secao="monitor">
+                        <button type="button" class="nav-link" data-secao="monitor">
+                            <span class="nav-icon">▥</span>
+                            <span class="nav-texto">Monitor</span>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-rodape">
+                <button type="button" class="tema-toggle" id="btn-tema" title="Alternar modo claro/escuro">
+                    <span class="tema-icone" id="tema-icone">☀</span>
+                    <span class="tema-texto" id="tema-texto">Modo escuro</span>
+                </button>
+                <div class="sidebar-usuario">
+                    <span class="usuario-iniciais" id="sidebar-usuario-iniciais">C</span>
+                    <div class="usuario-info">
+                        <span class="usuario-nome" id="sidebar-usuario-nome">Capivara</span>
+                        <span class="usuario-acao" id="btn-sair">Sair</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="conteudo">
+            <header class="topo">
+                <div class="topo-esq">
+                    <h2 class="topo-titulo" id="topo-titulo">Lagoa</h2>
+                    <p class="topo-subtitulo" id="topo-subtitulo">Onde a mágica das capivaras acontece</p>
+                </div>
+                <div class="topo-lado">
+                    <button class="botao-primario" id="btn-novo">+ Novo job</button>
+                    <span class="conexao" id="conexao">
+                        <span class="pulso"></span><span id="conexao-texto">conectando…</span>
+                    </span>
+                    <span class="relogio" id="relogio">--:--:--</span>
+                    <span class="usuario" id="usuario-area" hidden>
+                        <span id="usuario-nome"></span>
+                        <button class="botao-secundario" id="btn-sair-topo">Sair</button>
+                    </span>
+                </div>
+            </header>
+
+            <section class="resumo" id="resumo" aria-label="Resumo"></section>
+
+            <section class="desempenho oculto" id="painel-desempenho" aria-label="Desempenho">
+                <article class="cartao taxa-sucesso">
+                    <div class="taxa-anel" id="taxa-anel"><span id="taxa-valor">0%</span></div>
+                    <div class="taxa-texto">
+                        <h3>Taxa de sucesso</h3>
+                        <p id="taxa-detalhe">Nenhuma execução finalizada.</p>
+                    </div>
+                </article>
+                <article class="cartao grafico-card">
+                    <div class="grafico-topo">
+                        <h3>Execuções · últimos 7 dias</h3>
+                        <span id="grafico-total">0 execuções</span>
+                    </div>
+                    <div class="grafico-legenda" id="grafico-legenda"></div>
+                    <div class="grafico" id="grafico-execucoes"></div>
+                </article>
+                <article class="cartao sla-card">
+                    <div class="sla-topo">
+                        <h3>SLA · atenção</h3>
+                        <span id="sla-total">0 jobs</span>
+                    </div>
+                    <div class="sla-lista" id="lista-sla"></div>
+                </article>
+            </section>
+
+            <div class="main-grid">
+                <div class="painel-principal">
+                    <div class="card">
+                        <div class="card-cabecalho">
+                            <div class="filtros" id="filtros"></div>
+                        </div>
+
+                        <div class="card-corpo">
+                            <div class="painel-aba" id="aba-jobs">
+                                <div class="tabela-envolucro">
+                                    <table class="tabela">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th><th>Processo</th><th>Máquina</th><th>Status</th>
+                                                <th>Início</th><th>Duração</th><th>Trace</th><th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="corpo-jobs"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="painel-aba oculto" id="aba-dispositivos">
+                                <form class="form-linha" id="form-maquina">
+                                    <input type="text" id="mq-nome" placeholder="nome da máquina (ex.: PC-01)" required style="width:200px">
+                                    <input type="text" id="mq-tags" placeholder="tags (ex.: sp, financeiro)" style="width:200px">
+                                    <input type="text" id="mq-info" placeholder="observação (opcional)" style="width:200px">
+                                    <button type="submit" class="botao-primario">Cadastrar máquina</button>
+                                </form>
+
+                                <div class="tabela-envolucro">
+                                    <table class="tabela">
+                                        <thead>
+                                            <tr>
+                                                <th>Máquina</th><th>Estado</th><th>Tags</th>
+                                                <th>Última atividade</th><th>Token</th><th>Ações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="corpo-dispositivos"></tbody>
+                                    </table>
+                                </div>
+
+                                <div id="token-novo" class="token-box oculto"></div>
+                            </div>
+
+                            <div class="painel-aba oculto" id="aba-agendamentos">
+                                <div class="barra-acoes">
+                                    <button type="button" class="botao-primario" id="btn-novo-trigger">+ Novo agendamento</button>
+                                    <div class="segmentado" role="group" aria-label="Visualização dos agendamentos">
+                                        <button type="button" class="botao-secundario ativo" id="btn-agenda-lista">Lista</button>
+                                        <button type="button" class="botao-secundario" id="btn-agenda-calendario">Calendário</button>
+                                    </div>
+                                    <span class="dica">Disparos automáticos por intervalo, horário ou cron.</span>
+                                </div>
+
+                                <form class="form-agendamento oculto" id="form-trigger">
+                                    <div class="campo">
+                                        <label for="tr-processo">Automação (robô)</label>
+                                        <select id="tr-processo" required></select>
+                                    </div>
+                                    <div class="campo">
+                                        <label for="tr-maquina">Onde executar</label>
+                                        <select id="tr-maquina"><option value="">Qualquer máquina</option></select>
+                                    </div>
+                                    <div class="campo">
+                                        <label for="tr-tag">Requisito (tag) — opcional</label>
+                                        <input type="text" id="tr-tag" placeholder="ex.: sp, financeiro">
+                                    </div>
+                                    <div class="campo">
+                                        <label for="tr-tipo">Recorrência</label>
+                                        <select id="tr-tipo">
+                                            <option value="intervalo">A cada…</option>
+                                            <option value="diario">Diariamente às…</option>
+                                            <option value="cron">Cron (avançado)…</option>
+                                        </select>
+                                    </div>
+                                    <div class="campo">
+                                        <label for="tr-intervalo">Intervalo (min)</label>
+                                        <input type="number" id="tr-intervalo" min="1" value="30">
+                                    </div>
+                                    <div class="campo oculto" id="campo-hora">
+                                        <label for="tr-hora">Horário</label>
+                                        <input type="time" id="tr-hora" value="06:00">
+                                    </div>
+                                    <div class="campo oculto" id="campo-cron">
+                                        <label for="tr-cron">Expressão cron</label>
+                                        <input type="text" id="tr-cron" placeholder="*/15 9-18 * * seg-sex">
+                                    </div>
+                                    <div class="campo campo-largo">
+                                        <label>Dias da semana</label>
+                                        <div class="dias-semana" id="tr-dias">
+                                            <label class="dia"><input type="checkbox" value="1" checked> Seg</label>
+                                            <label class="dia"><input type="checkbox" value="2" checked> Ter</label>
+                                            <label class="dia"><input type="checkbox" value="3" checked> Qua</label>
+                                            <label class="dia"><input type="checkbox" value="4" checked> Qui</label>
+                                            <label class="dia"><input type="checkbox" value="5" checked> Sex</label>
+                                            <label class="dia"><input type="checkbox" value="6" checked> Sáb</label>
+                                            <label class="dia"><input type="checkbox" value="7" checked> Dom</label>
+                                        </div>
+                                    </div>
+                                    <div class="campo campo-largo">
+                                        <label>Executar em</label>
+                                        <div class="dias-semana">
+                                            <label class="caixa"><input type="checkbox" id="tr-fins" checked> Fins de semana</label>
+                                            <label class="caixa"><input type="checkbox" id="tr-feriados" checked> Feriados nacionais</label>
+                                        </div>
+                                    </div>
+                                    <div class="campo campo-botao">
+                                        <button type="submit" class="botao-primario">Agendar</button>
+                                        <button type="button" class="botao-secundario" id="tr-cancelar">Cancelar</button>
+                                    </div>
+                                </form>
+
+                                <div class="calendario oculto" id="calendario">
+                                    <div class="calendario-topo">
+                                        <button type="button" class="botao-secundario" id="cal-prev" title="Mês anterior">‹</button>
+                                        <h3 id="calendario-titulo">—</h3>
+                                        <button type="button" class="botao-secundario" id="cal-hoje">Hoje</button>
+                                        <button type="button" class="botao-secundario" id="cal-next" title="Próximo mês">›</button>
+                                    </div>
+                                    <div class="calendario-legenda" id="calendario-legenda"></div>
+                                    <div class="calendario-grade" id="calendario-grade"></div>
+                                </div>
+
+                                <div class="tabela-envolucro" id="tabela-triggers">
+                                    <table class="tabela">
+                                        <thead>
+                                            <tr><th>#</th><th>Automação</th><th>Onde</th><th>Quando</th>
+                                                <th>Dias</th><th>Próximo</th><th>Status</th><th>Ações</th></tr>
+                                        </thead>
+                                        <tbody id="corpo-triggers"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="painel-aba oculto" id="aba-automacoes">
+                                <form class="form-linha" id="form-pacote">
+                                    <input type="file" id="au-arquivo" accept=".zip" style="min-width:240px">
+                                    <input type="password" id="tr-senha-pacote" placeholder="senha do .zip (opcional)" style="width:180px">
+                                    <button type="submit" class="botao-primario">Enviar .zip</button>
+                                    <span class="dica">Envie um .zip com <code>rpa.json</code> + o script do robô.</span>
+                                </form>
+
+                                <form class="form-linha" id="form-pacote-git">
+                                    <input type="url" id="au-git-url" placeholder="https://github.com/usuario/meu-robo.git"
+                                        style="min-width:300px">
+                                    <input type="text" id="au-git-ref" placeholder="branch/tag (opcional)" style="width:160px">
+                                    <button type="submit" class="botao-primario">Instalar do Git</button>
+                                    <span class="dica">Repositório <strong>público</strong> com <code>rpa.json</code> na raiz.</span>
+                                </form>
+                                <div class="form-linha">
+                                    <button type="button" class="botao-secundario" onclick="verificarAtualizacoes()">Verificar atualizações agora</button>
+                                    <span class="dica">Automações marcadas como <strong>Auto</strong> são checadas periodicamente no Git.</span>
+                                </div>
+                                <div id="pacote-resultado" class="oculto"></div>
+
+                                <div class="tabela-envolucro">
+                                    <table class="tabela">
+                                        <thead>
+                                            <tr><th>Automação</th><th>Descrição</th><th>Fluxo</th>
+                                                <th>Navegador</th><th>Origem</th><th>Env</th><th>Ações</th></tr>
+                                        </thead>
+                                        <tbody id="corpo-automacoes"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="painel-aba oculto" id="aba-monitor">
+                                <iframe id="frame-monitor" class="frame-monitor" title="Monitor de execuções"
+                                    loading="lazy"></iframe>
+                            </div>
+
+            <div class="painel-aba oculto" id="aba-filas">
+                <form class="form-linha" id="form-fila">
+                    <input type="text" id="fi-nome" placeholder="nome (ex.: clientes)" required style="width:180px">
+                    <select id="fi-processo"></select>
+                    <input type="text" id="fi-desc" placeholder="descrição (opcional)" style="width:200px">
+                    <button type="submit" class="botao-primario">Criar fila</button>
+                </form>
+
+                <div class="tabela-envolucro">
+                    <table class="tabela">
+                        <thead>
+                            <tr><th>Fila</th><th>Processo executor</th><th>Itens</th><th>Progresso</th><th></th></tr>
+                        </thead>
+                        <tbody id="corpo-filas"></tbody>
+                    </table>
+                </div>
+
+                <div id="detalhe-fila" class="oculto bloco-detalhe">
+                    <div class="bloco-topo">
+                        <h3 id="detalhe-fila-titulo">—</h3>
+                        <span class="acionar oculto" id="detalhe-fila-fechar">fechar</span>
+                    </div>
+                    <form class="form-linha" id="form-fila-processos">
+                        <label class="rotulo-inline">Executores (round-robin)
+                            <select id="fi-processos" multiple style="min-width:280px;height:70px"></select>
+                        </label>
+                        <button type="submit" class="botao-primario">Salvar executores</button>
+                    </form>
+
+                    <form class="form-linha" id="form-itens">
+                        <textarea id="fi-itens-json" rows="2" placeholder='[{ "nome": "ACME", "uf": "SP", "prioridade": 2 }]' required></textarea>
+                        <input type="text" id="fi-ref-campo" placeholder="ref (campo)" style="width:140px">
+                        <input type="number" id="fi-prioridade" value="0" min="0" style="width:100px" title="prioridade padrão (maior = primeiro)">
+                        <button type="submit" class="botao-primario">+ Itens</button>
+                    </form>
+
+                    <div class="filtros" id="filtros-itens"></div>
+
+                    <div class="tabela-envolucro">
+                        <table class="tabela">
+                            <thead><tr><th>#</th><th>Referência</th><th>Status</th><th>Prioridade</th><th>Dados / mensagem</th></tr></thead>
+                            <tbody id="corpo-itens"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="painel-aba oculto" id="aba-assets">
+                <form class="form-linha" id="form-asset">
+                    <input type="text" id="as-nome" placeholder="nome (ex.: portal)" required style="width:160px">
+                    <input type="text" id="as-usuario" placeholder="usuário (opcional)" style="width:150px">
+                    <input type="text" id="as-valor" placeholder="valor/senha" required style="width:150px">
+                    <select id="as-tipo" style="width:110px">
+                        <option value="segredo">segredo</option>
+                        <option value="texto">texto</option>
+                    </select>
+                    <input type="text" id="as-desc" placeholder="descrição (opcional)" style="width:160px">
+                    <button type="submit" class="botao-primario">Salvar</button>
+                </form>
+                <div class="tabela-envolucro">
+                    <table class="tabela">
+                        <thead>
+                            <tr><th>Nome</th><th>Usuário</th><th>Valor</th><th>Tipo</th><th>v</th><th>Descrição</th><th></th></tr>
+                        </thead>
+                        <tbody id="corpo-assets"></tbody>
+                    </table>
+                </div>
+                <h4 class="subtitulo">Auditoria recente
+                    <button type="button" class="botao-secundario" id="btn-expurgar">Expurgar antigos</button>
+                    <a class="botao-secundario" id="link-csv" href="/api/orq/auditoria/exportar" download>Exportar CSV</a>
+                </h4>
+                <div class="tabela-envolucro">
+                    <table class="tabela">
+                        <thead>
+                            <tr><th>Hora</th><th>Ator</th><th>Ação</th><th>Recurso</th><th>Resultado</th></tr>
+                        </thead>
+                        <tbody id="corpo-auditoria"></tbody>
+                    </table>
+                </div>
+            </div>
+
+                            <div class="painel-aba oculto" id="aba-acessos">
+                                <form class="form-linha" id="form-usuario">
+                                    <input type="text" id="us-nome" placeholder="nome" required style="width:130px">
+                                    <input type="email" id="us-email" placeholder="email" required style="width:180px">
+                                    <input type="password" id="us-senha" placeholder="senha" required style="width:130px">
+                                    <input type="text" id="us-papeis" placeholder="papéis (ex.: admin,operador)" style="width:200px">
+                                    <label class="caixa"><input type="checkbox" id="us-admin"> admin</label>
+                                    <button type="submit" class="botao-primario">Criar usuário</button>
+                                </form>
+
+                                <div class="tabela-envolucro">
+                                    <table class="tabela">
+                                        <thead>
+                                            <tr><th>Nome</th><th>E-mail</th><th>Papéis</th><th>Permissões</th><th>Admin</th><th></th></tr>
+                                        </thead>
+                                        <tbody id="corpo-usuarios"></tbody>
+                                    </table>
+                                </div>
+
+                                <h4 class="subtitulo">Papéis</h4>
+                                <form class="form-linha" id="form-papel">
+                                    <input type="text" id="pa-nome" placeholder="nome do papel" required style="width:150px">
+                                    <input type="text" id="pa-permissoes" placeholder="permissoes separadas por vírgula" style="width:340px">
+                                    <button type="submit" class="botao-primario">Salvar papel</button>
+                                </form>
+                                <div class="tabela-envolucro">
+                                    <table class="tabela">
+                                        <thead><tr><th>Papel</th><th>Permissões</th></tr></thead>
+                                        <tbody id="corpo-papeis"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="painel-lateral">
+                    <div class="card">
+                        <div class="card-cabecalho">
+                            <h3 class="card-titulo">Máquinas</h3>
+                            <span id="qtd-maquinas" class="contador"></span>
+                        </div>
+                        <div class="card-corpo lista" id="lista-maquinas"><p class="vazio">Carregando…</p></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-cabecalho">
+                            <h3 class="card-titulo">Processos</h3>
+                            <span class="contador" id="qtd-processos"></span>
+                        </div>
+                        <div class="card-corpo lista" id="lista-processos"></div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="rodape">
+                <span>Capivara · Lagoa · atualização a cada 2s</span>
+                <span id="atualizado">—</span>
+            </footer>
+        </div>
+    </div>
+
+    <dialog id="dialog-login" class="modal">
+        <form method="dialog" id="form-login">
+            <h3>Entrar na Lagoa</h3>
+            <label>E-mail
+                <input type="email" id="login-email" required autocomplete="username">
+            </label>
+            <label>Senha
+                <input type="password" id="login-senha" required autocomplete="current-password">
+            </label>
+            <p class="erro-login" id="login-erro"></p>
+            <div class="modal-acoes">
+                <button type="submit" class="botao-primario">Entrar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="dialog-variaveis" class="modal">
+        <form method="dialog" id="form-variaveis">
+            <h3>Variáveis de ambiente · <span id="variaveis-processo">—</span></h3>
+            <p class="dica">Uma por linha no formato <code>CHAVE=valor</code>. Elas ficam disponíveis
+                para o robô via <code>os.environ</code> em todas as execuções desta automação.</p>
+            <textarea id="variaveis-texto" rows="10" spellcheck="false"
+                placeholder="API_URL=https://exemplo.com&#10;AMBIENTE=producao"></textarea>
+            <p class="erro-login" id="variaveis-erro"></p>
+            <div class="modal-acoes">
+                <button type="button" class="botao-secundario" id="variaveis-cancelar">Cancelar</button>
+                <button type="submit" class="botao-primario">Salvar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="dialog-job" class="modal modal-larga">
+        <div class="job-detalhe">
+            <div class="modal-topo">
+                <h3 id="job-titulo">Job</h3>
+                <button type="button" class="botao-secundario" id="job-fechar">Fechar</button>
+            </div>
+            <div id="job-resumo" class="job-resumo"></div>
+            <div class="modal-acoes" id="job-acoes"></div>
+            <h4 class="subtitulo">Trace (passo a passo)</h4>
+            <div id="job-trace" class="trace"><p class="vazio">Carregando…</p></div>
+        </div>
+    </dialog>
+
+    <dialog id="modal" class="modal">
+        <form method="dialog" id="form-job">
+            <h3>Disparar novo job</h3>
+            <label>Processo
+                <select id="campo-processo" required></select>
+            </label>
+            <label>Máquina
+                <select id="campo-maquina"><option value="">Qualquer máquina disponível</option></select>
+            </label>
+            <label>Requisito (tag / pool) — opcional
+                <input type="text" id="campo-tag" placeholder="ex.: sp, financeiro">
+            </label>
+            <label>Observação
+                <input type="text" id="campo-obs" placeholder="opcional">
+            </label>
+            <div class="modal-acoes">
+                <button type="button" class="botao-secundario" id="btn-cancelar-modal">Cancelar</button>
+                <button type="submit" class="botao-primario">Executar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="painel.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "nome": "meu_robo",
+  "versao": "1.0.0",
+  "descricao": "Descreva aqui em uma frase o que este robô faz.",
+  "entrada": "main.py",
+  "funcao": "rodar",
+  "usa_navegador": false
+}

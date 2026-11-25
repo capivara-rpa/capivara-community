@@ -1,0 +1,127 @@
+{
+  "page": "https://www.mercadolivre.com.br/",
+  "title": "(2) Mercado Livre Brasil - Frete Grátis no mesmo dia",
+  "timestamp": "2026-09-10T14:41:26.158Z",
+  "elements": [
+    {
+      "name": "Input \"Buscar produtos, marcas e muito mais… (text)\"",
+      "tag": "input",
+      "text": "",
+      "fullXpath": "//html//body/header/div/div[2]/form/input",
+      "relativeXpath": "//*[@id=\"cb1-edit\"]",
+      "customPath": "//*[@id=\"cb1-edit\"]"
+    },
+    {
+      "name": "Link \"Enviar para Arthur Avenida Conselheiro Costa Pinto\"",
+      "tag": "a",
+      "text": "Enviar para Arthur Avenida Conselheiro Costa Pinto 775",
+      "fullXpath": "//html//body/header/div/div[4]/div/a",
+      "relativeXpath": "//html//body/header/div/div[4]/div/a",
+      "customPath": "//html//body/header/div/div[4]/div/a"
+    },
+    {
+      "name": "Link \"Mercado Livre Brasil - Onde comprar e vender de Tu\"",
+      "tag": "a",
+      "text": "Mercado Livre Brasil - Onde comprar e vender de Tudo",
+      "fullXpath": "//html//body/header/div/div[1]/a[2]",
+      "relativeXpath": "//*[text()=\"Mercado Livre Brasil - Onde comprar e vender de Tudo\"]",
+      "customPath": "//html//body/header/div/div[1]/a[2]"
+    },
+    {
+      "name": "Link \"Headset Gamer Skullcandy Slyr Com Fio Xbox Ps5 Pc \"",
+      "tag": "a",
+      "text": "Headset Gamer Skullcandy Slyr Com Fio Xbox Ps5 Pc Preto Preto",
+      "fullXpath": "//html//body/main/div/div[1]/div[2]/section/div/section/div[2]/div/div/div[1]/div/div/div[3]/a",
+      "relativeXpath": "//*[@id=\"_R_8qh8pa_\"]/div[3]/a[contains(@class,'dynamic-access-card-item__item-title')]",
+      "customPath": "//html//body/main/div/div[1]/div[2]/section/div/section/div[2]/div/div/div[1]/div/div/div[3]/a"
+    },
+    {
+      "name": "Link \"Fone De Ouvido Skullcandy Supreme Sound Icon 3 Bra\"",
+      "tag": "a",
+      "text": "Fone De Ouvido Skullcandy Supreme Sound Icon 3 Branco",
+      "fullXpath": "//html//body/main/div/div[1]/div[2]/section/div/section/div[2]/div/div/div[3]/div/div/div[3]/a",
+      "relativeXpath": "//*[text()=\"Fone De Ouvido Skullcandy Supreme Sound Icon 3 Branco\"]",
+      "customPath": "//html//body/main/div/div[1]/div[2]/section/div/section/div[2]/div/div/div[3]/div/div/div[3]/a"
+    },
+    {
+      "name": "Link \"Quadro Decorativo Tela Sala Quarto Van Gogh Noite \"",
+      "tag": "a",
+      "text": "Quadro Decorativo Tela Sala Quarto Van Gogh Noite Estrelada Azul Marrom-claro",
+      "fullXpath": "//html//body/main/div/div[1]/div[2]/section/div/section/div[2]/div/div/div[4]/div/div/div[3]/a",
+      "relativeXpath": "//*[@id=\"_R_aah8pa_\"]/div[3]/a[contains(@class,'dynamic-access-card-item__item-title')]",
+      "customPath": "//html//body/main/div/div[1]/div[2]/section/div/section/div[2]/div/div/div[4]/div/div/div[3]/a"
+    },
+    {
+      "name": "Link \"Controle Sem Fio 8bitdo Ultimate 2c Pc E Android H\"",
+      "tag": "a",
+      "text": "Controle Sem Fio 8bitdo Ultimate 2c Pc E Android Hall Effect Marrom",
+      "fullXpath": "//html//body/main/div/div[1]/div[7]/div/section/section/div/section/div[2]/div/div/div[4]/div/div[2]/a",
+      "relativeXpath": "//*[text()=\"Controle Sem Fio 8bitdo Ultimate 2c Pc E Android Hall Effect Marrom\"]",
+      "customPath": "//html//body/main/div/div[1]/div[7]/div/section/section/div/section/div[2]/div/div/div[4]/div/div[2]/a"
+    },
+    {
+      "name": "Link \"Controle Gamepad 8BitDo Ultimate Wireless 2.4G Sem\"",
+      "tag": "a",
+      "text": "Controle Gamepad 8BitDo Ultimate Wireless 2.4G Sem Fio Preto com Dock de Carregamento",
+      "fullXpath": "//html//body/main/div/div[1]/div[7]/div/section/section/div/section/div[2]/div/div/div[3]/div/div[2]/a",
+      "relativeXpath": "//*[@id=\"bf4042341a08bc342fd\"]/div[2]/a[contains(@class,'poly-component__title')]",
+      "customPath": "//html//body/main/div/div[1]/div[7]/div/section/section/div/section/div[2]/div/div/div[3]/div/div[2]/a"
+    },
+    {
+      "name": "Link \"Quadro Grande Pintura Tela Canvas Van Gogh Noite E\"",
+      "tag": "a",
+      "text": "Quadro Grande Pintura Tela Canvas Van Gogh Noite Estrelada",
+      "fullXpath": "//html//body/main/div/div[1]/div[8]/div/section/section/div/section/div[2]/div/div/div[3]/div/div[2]/a",
+      "relativeXpath": "//*[text()=\"Quadro Grande Pintura Tela Canvas Van Gogh Noite Estrelada\"]",
+      "customPath": "//html//body/main/div/div[1]/div[8]/div/section/section/div/section/div[2]/div/div/div[3]/div/div[2]/a"
+    },
+    {
+      "name": "Link \"Quadro Decorativo Van Gogh Café Terrace 60x90 Arte\"",
+      "tag": "a",
+      "text": "Quadro Decorativo Van Gogh Café Terrace 60x90 Arte Envio Já Terraço Do Café A Noite",
+      "fullXpath": "//html//body/main/div/div[1]/div[8]/div/section/section/div/section/div[2]/div/div/div[6]/div/div[2]/a",
+      "relativeXpath": "//*[@id=\"261f37a61a08bc3434a\"]/div[2]/a[contains(@class,'poly-component__title')]",
+      "customPath": "//html//body/main/div/div[1]/div[8]/div/section/section/div/section/div[2]/div/div/div[6]/div/div[2]/a"
+    },
+    {
+      "name": "Link \"Ver produtosRepita o mercado\"",
+      "tag": "a",
+      "text": "Ver produtosRepita o mercado",
+      "fullXpath": "//html//body/main/div/div[1]/div[2]/section/div/section/div[2]/div/div/div[6]/div/div/a",
+      "relativeXpath": "//html//body/main/div/div[1]/div[2]/section/div/section/div[2]/div/div/div[6]/div/div/a",
+      "customPath": "//html//body/main/div/div[1]/div[2]/section/div/section/div[2]/div/div/div[6]/div/div/a"
+    },
+    {
+      "name": "Link \"Ir para o carrinhoCompre seu carrinho\"",
+      "tag": "a",
+      "text": "Ir para o carrinhoCompre seu carrinho",
+      "fullXpath": "//html//body/main/div/div[1]/div[2]/section/div/section/div[2]/div/div/div[5]/div/div/a",
+      "relativeXpath": "//html//body/main/div/div[1]/div[2]/section/div/section/div[2]/div/div/div[5]/div/div/a",
+      "customPath": "//html//body/main/div/div[1]/div[2]/section/div/section/div[2]/div/div/div[5]/div/div/a"
+    },
+    {
+      "name": "Span \"Arthur\"",
+      "tag": "span",
+      "text": "Arthur",
+      "fullXpath": "//html//body/header/div/div[6]/nav/ul/li[1]/div/label/a/span",
+      "relativeXpath": "//span[contains(@class,'nav-header-usermenu-wrapper')]",
+      "customPath": "//*[@id=\"nav-header-menu\"]/ul[contains(@class,'nav-header-menu-list')]/li[1]/div[contains(@class,'nav-header-user')]/label/a[contains(@class,'nav-header-user-myml')]/span[contains(@class,'nav-header-usermenu-wrapper')]"
+    },
+    {
+      "name": "Link \"Compras\"",
+      "tag": "a",
+      "text": "Compras",
+      "fullXpath": "//html//body/header/div/div[6]/nav/ul/li[2]/a[1]",
+      "relativeXpath": "//*[text()=\"Compras\"]",
+      "customPath": "//*[@id=\"nav-header-menu\"]/ul[contains(@class,'nav-header-menu-list')]/li[2]/a[1]"
+    },
+    {
+      "name": "Span \"Favoritos\"",
+      "tag": "span",
+      "text": "Favoritos",
+      "fullXpath": "//html//body/header/div/div[6]/nav/ul/li[2]/a[2]/span",
+      "relativeXpath": "//span[contains(@class,'bookmarks-text')]",
+      "customPath": "//*[@id=\"nav-header-menu\"]/ul[contains(@class,'nav-header-menu-list')]/li[2]/a[2]/span[contains(@class,'bookmarks-text')]"
+    }
+  ]
+}

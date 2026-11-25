@@ -5,6 +5,7 @@
 | Papel | Responsabilidade |
 |---|---|
 | Comunidade | Abrir ideias, discutir, testar, enviar PRs |
+| `capivara-rpa/capivara-community` | Snapshot funcional da oficial + propostas em avaliação |
 | Mantenedores | Triar, avaliar, decidir e integrar |
 | Repositório oficial | Código, releases e versão **stable** |
 | Branch `next` (oficial) | Integração das propostas aceitas |
@@ -70,4 +71,5 @@ merge em next → release → main
 - `main`: stable, pronta para uso.
 - `next`: propostas aceitas em validação.
 - Tags `v*`: releases da stable, com notas no repositório oficial.
-- O snapshot da comunidade é avaliado antes de entrar em `next`.
+- O snapshot da comunidade acompanha a oficial e mantém `exemplos/` e `ideias/`.
+- O que for aceito no snapshot é avaliado antes de entrar em `next`.

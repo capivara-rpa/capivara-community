@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 200" role="img" aria-labelledby="titulo">
+  <title id="titulo">Capivara — RPA em Python</title>
+  <defs>
+    <linearGradient id="verde" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2BC07A"/>
+      <stop offset="1" stop-color="#1FA463"/>
+    </linearGradient>
+  </defs>
+
+  <!-- selo -->
+  <rect x="16" y="16" width="168" height="168" rx="48" fill="url(#verde)"/>
+  <rect x="34" y="34" width="132" height="132" rx="36" fill="#FAF6EF"/>
+
+  <!-- capivara -->
+  <g transform="translate(34 54) scale(0.5)">
+    <rect x="58" y="128" width="20" height="30" rx="9" fill="#7c5333"/>
+    <rect x="88" y="132" width="20" height="28" rx="9" fill="#865a37"/>
+    <rect x="148" y="128" width="20" height="30" rx="9" fill="#7c5333"/>
+    <rect x="176" y="132" width="20" height="28" rx="9" fill="#865a37"/>
+    <path d="M28 108c0-34 30-58 74-58h62c30 0 50 18 50 46v14c0 22-16 36-40 36H66c-24 0-38-14-38-38z" fill="#9b6b43"/>
+    <path d="M52 92c10-20 34-30 62-30h44c-30 6-62 18-82 40-8 8-28 6-24-10z" fill="#b58459" opacity=".55"/>
+    <path d="M70 76l6-6M92 68l6-6M116 64l6-6" stroke="#7c5333" stroke-width="3" stroke-linecap="round"/>
+    <rect x="150" y="30" width="86" height="70" rx="30" fill="#a87650"/>
+    <rect x="196" y="44" width="40" height="52" rx="20" fill="#9b6b43"/>
+    <circle cx="166" cy="32" r="11" fill="#8a5d39"/>
+    <circle cx="166" cy="33" r="5" fill="#5e3f26"/>
+    <path d="M180 56q7-6 14 0" fill="none" stroke="#2b1d12" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="188" cy="74" rx="8" ry="5" fill="#e98c6a" opacity=".55"/>
+    <rect x="222" y="54" width="12" height="10" rx="5" fill="#3a2717"/>
+    <path d="M214 80q7 6 14 0" fill="none" stroke="#3a2717" stroke-width="3.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- nome -->
+  <text x="214" y="98" font-family="'Plus Jakarta Sans','Inter','Helvetica Neue',Arial,sans-serif"
+        font-size="76" font-weight="800" letter-spacing="-1" fill="#0E1411">Capivara</text>
+
+  <!-- detalhe -->
+  <rect x="218" y="120" width="60" height="5" rx="2.5" fill="#FFD84D"/>
+  <text x="218" y="158" font-family="'Plus Jakarta Sans','Inter','Helvetica Neue',Arial,sans-serif"
+        font-size="22" font-weight="600" letter-spacing="5" fill="#1FA463">RPA EM PYTHON</text>
+</svg>

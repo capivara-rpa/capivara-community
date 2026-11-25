@@ -1,0 +1,13 @@
+# EXEMPLO de dependências do seu robô.
+#
+# Renomeie este arquivo para "requirements.txt" para ativá-lo. Quando existe um
+# requirements.txt na pasta do robô, o agente cria um .venv isolado só para ele
+# (cria a venv, atualiza o pip, instala e executa o robô nesse ambiente).
+#
+# Uma dependência por linha, como no pip normal:
+# pandas==2.2.2
+# requests>=2.31
+# selenium==4.23.0
+#
+# Dica: as bibliotecas do próprio template (loguru, rich, requests, selenium…)
+# já vêm do ambiente do agente; liste aqui só o que o seu robô precisa a mais.

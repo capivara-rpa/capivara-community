@@ -1,6 +1,56 @@
-.DS_Store
+# ===== Ambiente virtual =====
+.venv/
+venv/
+env/
+motor/
+
+# ===== Python =====
 __pycache__/
 *.py[cod]
-.venv/
+*.egg-info/
+.eggs/
+build/
+dist/
+.ruff_cache/
+.pytest_cache/
+
+# ===== Segredos =====
 .env
+
+# ===== Notas locais (memória da IA - não vai pro repositório) =====
+AGENTS.md
+agents_beans.md
+
+# ===== Arquivos gerados pelos robôs =====
+data/output/*
+!data/output/.gitkeep
+data/logs/*
+!data/logs/.gitkeep
+
+# ===== Segredos / vault =====
+data/vault.key
+
+# ===== Robôs instalados via pacote .zip (gerados) =====
+app/robos/
+
+# ===== Banco do monitor (trace das execuções) =====
+*.db
+*.db-journal
+*.sqlite3
+
+# ===== Logs =====
 *.log
+
+# ===== IDE / SO =====
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# ===== Selenium =====
+.geckodriver.log
+chromedriver
+
+# ===== Landing page e artefatos locais de teste =====
+landing/
+/teste_popup.zip

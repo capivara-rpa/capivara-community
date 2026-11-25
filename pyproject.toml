@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "capivara-rpa"
+version = "1.2.0"
+description = "Capivara — biblioteca e plataforma de RPA em Python, 100% em português"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+keywords = ["rpa", "selenium", "automacao", "pandas", "low-code", "capivara", "biblioteca"]
+authors = [{ name = "Capivara", email = "capivara@arthurfaria.tech" }]
+
+dependencies = [
+    "requests>=2.31.0",
+    "loguru>=0.7.2",
+    "rich>=13.7.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/capivara-rpa/capivara"
+Documentation = "https://github.com/capivara-rpa/capivara#readme"
+Issues = "https://github.com/capivara-rpa/capivara/issues"
+
+[project.optional-dependencies]
+web = ["selenium>=4.20.0"]
+dados = ["pandas>=2.1.0", "openpyxl>=3.1.0"]
+cofre = ["cryptography>=42.0.0"]
+pacotes = ["pyzipper>=0.3.6"]
+interacao = ["pyperclip>=1.8.2"]
+lagoa = ["cryptography>=42.0.0", "pyzipper>=0.3.6"]
+# Legado (mantido para quem já instalou com este extra)
+control-room = ["cryptography>=42.0.0", "pyzipper>=0.3.6"]
+all = [
+    "selenium>=4.20.0",
+    "pandas>=2.1.0",
+    "openpyxl>=3.1.0",
+    "cryptography>=42.0.0",
+    "pyzipper>=0.3.6",
+    "pyperclip>=1.8.2",
+]
+dev = [
+    "ruff",
+    "pytest",
+    "pyinstaller>=6.0",
+    "selenium>=4.20.0",
+    "pandas>=2.1.0",
+    "openpyxl>=3.1.0",
+    "cryptography>=42.0.0",
+    "pyzipper>=0.3.6",
+    "pyperclip>=1.8.2",
+]
+keyring = ["keyring>=24.0"]
+
+[project.scripts]
+capivara = "capivara_rpa.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+# a raiz entra no sys.path para o atalho `pytest` achar o pacote `core`
+# mesmo sem `pip install -e .` (o `python -m pytest` já faz isso sozinho)
+pythonpath = ["."]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["capivara_rpa*", "core*", "settings*"]
+
+[tool.setuptools.package-data]
+"core.control_room" = ["estatico/*", "estatico/img/*"]
+"core.monitor" = ["estatico/*", "estatico/img/*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501", "B904", "I001"]

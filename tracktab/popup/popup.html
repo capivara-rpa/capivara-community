@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrackTab</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+          <circle cx="12" cy="12" r="4" fill="currentColor"/>
+          <line x1="12" y1="2" x2="12" y2="6" stroke="currentColor" stroke-width="2"/>
+          <line x1="12" y1="18" x2="12" y2="22" stroke="currentColor" stroke-width="2"/>
+          <line x1="2" y1="12" x2="6" y2="12" stroke="currentColor" stroke-width="2"/>
+          <line x1="18" y1="12" x2="22" y2="12" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <h1>TrackTab</h1>
+      </div>
+      <span class="version">v1.0</span>
+    </header>
+
+    <div class="status-bar" id="statusBar">
+      <span class="status-dot" id="statusDot"></span>
+      <span class="status-text" id="statusText">Pronto para gravar</span>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-start" id="btnStart">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="5,3 19,12 5,21"/>
+        </svg>
+        Iniciar Gravação
+      </button>
+      <button class="btn btn-stop" id="btnStop" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="4" y="4" width="16" height="16" rx="2"/>
+        </svg>
+        Parar
+      </button>
+    </div>
+
+    <div class="counter" id="counterSection" style="display: none;">
+      <span class="counter-label">Elementos capturados:</span>
+      <span class="counter-value" id="counterValue">0</span>
+    </div>
+
+    <div class="elements-list" id="elementsList" style="display: none;">
+      <div class="list-header">
+        <h3>Elementos</h3>
+        <button class="btn-icon" id="btnClear" title="Limpar tudo">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3,6 5,6 21,6"/>
+            <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"/>
+          </svg>
+        </button>
+      </div>
+      <ul id="elementsUl"></ul>
+    </div>
+
+    <div class="export-section" id="exportSection" style="display: none;">
+      <button class="btn btn-export" id="btnExportJson">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21,15v4a2,2,0,0,1-2,2H5a2,2,0,0,1-2-2V15"/>
+          <polyline points="7,10 12,15 17,10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Exportar JSON
+      </button>
+      <button class="btn btn-export" id="btnExportTxt">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21,15v4a2,2,0,0,1-2,2H5a2,2,0,0,1-2-2V15"/>
+          <polyline points="7,10 12,15 17,10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Exportar TXT
+      </button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

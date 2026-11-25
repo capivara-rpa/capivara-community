@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Capivara — Apresentação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="estilo.css" />
+</head>
+<body>
+
+<div class="barra-preview">
+  <strong>Capivara · Apresentação</strong>
+  <span>13 slides · 16:9</span>
+  <button type="button" onclick="window.print()">Exportar PDF</button>
+</div>
+
+<main class="palco">
+
+  <!-- 01 · CAPA -->
+  <section class="slide slide-capa">
+    <header class="topo-marca">
+      <img src="../capivara/assets/img/favicon.svg" alt="" width="34" height="34" />
+      <span class="marca-nome">Capivara</span>
+      <span class="marca-tag">RPA em Python</span>
+    </header>
+
+    <div class="capa-grade">
+      <div class="capa-texto">
+        <span class="eyebrow">Apresentação institucional · 2026</span>
+        <h1>Deixa que a<br /><span class="verde">Capivara</span> faz.</h1>
+        <p class="lead">Automação de processos com Python, 100% em português. Simples para começar, completa para ir à produção.</p>
+        <div class="pills">
+          <span>Python 3.11+</span>
+          <span>Open Source · MIT</span>
+          <span>100% PT-BR</span>
+        </div>
+      </div>
+
+      <div class="capa-mascote" aria-hidden="true">
+        <div class="mascote-halo"></div>
+        <img class="mascote" src="../capivara/assets/img/capivara.svg" alt="" width="300" height="225" />
+        <div class="mini-card mini-card-1"><strong>Job #42</strong><span>concluído</span></div>
+        <div class="mini-card mini-card-2"><strong>06:00</strong><span>seg a sex</span></div>
+        <div class="mini-card mini-card-3"><strong>••••••••</strong><span>senha no cofre</span></div>
+      </div>
+    </div>
+
+    <footer class="rodape">
+      <span>github.com/capivara-rpa/capivara</span>
+      <span class="pagina">01</span>
+    </footer>
+  </section>
+
+  <!-- 02 · PROBLEMA -->
+  <section class="slide slide-centro">
+    <header class="cabecalho">
+      <span class="eyebrow">O problema</span>
+      <h2>Trabalho repetitivo não precisa ser manual.</h2>
+      <p class="sub">Planilha, portal, e-mail, conferência. O time gasta horas em tarefas que não mudam de um dia para o outro.</p>
+    </header>
+
+    <div class="grade-3 problemas">
+      <article class="card">
+        <span class="num">01</span>
+        <h3>Horas perdidas</h3>
+        <p>Copiar, colar e conferir dados consome o dia de quem poderia estar analisando, vendendo ou atendendo.</p>
+      </article>
+      <article class="card">
+        <span class="num">02</span>
+        <h3>Ferramentas caras</h3>
+        <p>RPA tradicional cobra por robô, por licença e por consultoria. A conta não fecha para times pequenos.</p>
+      </article>
+      <article class="card">
+        <span class="num">03</span>
+        <h3>Pouco controle</h3>
+        <p>Quando o robô roda escondido, ninguém sabe se falhou, quanto demorou ou quem acessou o quê.</p>
+      </article>
+    </div>
+
+    <div class="faixa-antes-depois">
+      <div class="antes">
+        <span class="rotulo">Antes</span>
+        <p>Ctrl+C, Ctrl+V, planilha, e-mail e “alguém confere depois”.</p>
+      </div>
+      <span class="seta" aria-hidden="true">→</span>
+      <div class="depois">
+        <span class="rotulo">Com Capivara</span>
+        <p>Um robô roda, registra cada passo e avisa quando termina.</p>
+      </div>
+    </div>
+
+    <div class="faixa-quote">
+      <p>“Automação não é sobre demitir. É sobre parar de contratar trabalho repetitivo.”</p>
+    </div>
+
+    <footer class="rodape"><span>Capivara · Deixa que a Capivara faz.</span><span class="pagina">02</span></footer>
+  </section>
+
+  <!-- 03 · O QUE É -->
+  <section class="slide slide-centro">
+    <header class="cabecalho">
+      <span class="eyebrow">O que é</span>
+      <h2>RPA em Python, do jeito brasileiro.</h2>
+    </header>
+
+    <div class="grade-oque">
+      <div class="oque-texto">
+        <p class="lead">A Capivara transforma bibliotecas complexas em funções descritivas em português. Você escreve o processo; ela cuida do Selenium, pandas, requests e da orquestração.</p>
+        <ul class="lista-check">
+          <li><strong>Low-code de verdade:</strong> <code>abrir_url</code>, <code>clicar_elemento</code>, <code>ler_csv</code>, <code>enviar_email</code>.</li>
+          <li><strong>Open source (MIT):</strong> sem licença por robô, sem caixa-preta.</li>
+          <li><strong>Lagoa completa:</strong> agentes, filas, agendamentos, cofre e auditoria.</li>
+          <li><strong>Do notebook à produção:</strong> roda local, em servidor ou com instaladores sem Python.</li>
+        </ul>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat"><strong>600</strong><span>devs na comunidade</span></div>
+        <div class="stat"><strong>63</strong><span>ações de navegador em português</span></div>
+        <div class="stat"><strong>156</strong><span>testes automatizados</span></div>
+        <div class="stat"><strong>0</strong><span>Python para instalar a Lagoa</span></div>
+      </div>
+    </div>
+
+    <footer class="rodape"><span>Feito no Brasil · código aberto</span><span class="pagina">03</span></footer>
+  </section>
+
+  <!-- 04 · COMO FUNCIONA -->
+  <section class="slide slide-centro">
+    <header class="cabecalho">
+      <span class="eyebrow">Como funciona</span>
+      <h2>Três passos. Zero estresse.</h2>
+      <p class="sub">Do primeiro script ao robô rodando sozinho de madrugada — sem virar refém de ferramenta cara.</p>
+    </header>
+
+    <div class="passos">
+      <article class="passo">
+        <span class="passo-num">01</span>
+        <h3>Escreva</h3>
+        <p>Use funções que falam a sua língua. O Selenium, o pandas e o requests ficam por baixo dos panos.</p>
+        <code class="trecho">nav.clicar_elemento("#entrar")</code>
+      </article>
+      <article class="passo">
+        <span class="passo-num">02</span>
+        <h3>Agende</h3>
+        <p>Intervalo, horário, cron, dias da semana, feriados e fila de itens. Cada robô pode rodar na máquina certa.</p>
+        <code class="trecho">seg a sex · 06:00</code>
+      </article>
+      <article class="passo">
+        <span class="passo-num">03</span>
+        <h3>Acompanhe</h3>
+        <p>Jobs, passos, erros e tempo em tempo real. O Monitor mostra o trace e a Lagoa mostra o negócio.</p>
+        <code class="trecho">Job #42 · concluído</code>
+      </article>
+    </div>
+
+    <div class="faixa-resultado">
+      <span><strong>Menos erro manual</strong> O mesmo processo, sempre igual.</span>
+      <span><strong>Mais tempo útil</strong> O time cuida do que exige cabeça.</span>
+      <span><strong>Rastreabilidade</strong> Cada passo fica registrado.</span>
+    </div>
+
+    <footer class="rodape"><span>Escreva · Agende · Acompanhe</span><span class="pagina">04</span></footer>
+  </section>
+
+  <!-- 05 · RECURSOS -->
+  <section class="slide slide-centro">
+    <header class="cabecalho">
+      <span class="eyebrow">Recursos</span>
+      <h2>O kit completo para automatizar.</h2>
+    </header>
+
+    <div class="grade-recursos">
+      <article class="recurso"><span class="kicker">WEB</span><h3>Navegador</h3><p>63 ações em português: clicar, ler, arrastar, iframe, download, captura e abas.</p></article>
+      <article class="recurso"><span class="kicker">ORQ</span><h3>Lagoa</h3><p>Onde a mágica das capivaras acontece. Máquinas, processos, jobs e agentes no mesmo painel.</p></article>
+      <article class="recurso"><span class="kicker">FILA</span><h3>Filas</h3><p>Itens com prioridade, retentativa, pausa e round-robin entre executores.</p></article>
+      <article class="recurso"><span class="kicker">CRON</span><h3>Agendamentos</h3><p>Intervalo, diário, cron, dias úteis, fins de semana e feriados nacionais.</p></article>
+      <article class="recurso"><span class="kicker">SAFE</span><h3>Cofre</h3><p>Credenciais cifradas, versões, rotação, permissão por processo e auditoria.</p></article>
+      <article class="recurso"><span class="kicker">LOG</span><h3>Monitor</h3><p>Trace de execução, passos, níveis de log e status de cada robô.</p></article>
+    </div>
+
+    <div class="faixa-usos">
+      <span>Back office</span><span>Financeiro</span><span>Atendimento</span><span>Dados</span><span>Compliance</span>
+    </div>
+
+    <div class="callout">
+      <strong>Sem licença por robô. Sem caixa-preta.</strong>
+      <span>O motor é aberto; a operação é sua.</span>
+    </div>
+
+    <footer class="rodape"><span>Um motor, várias automações</span><span class="pagina">05</span></footer>
+  </section>
+
+  <!-- 06 · CÓDIGO -->
+  <section class="slide slide-escura slide-centro">
+    <header class="cabecalho">
+      <span class="eyebrow">Código</span>
+      <h2>Python que se lê como português.</h2>
+    </header>
+
+    <div class="grade-codigo">
+      <div class="codigo-texto">
+        <p class="lead">Sem decorar API. Sem 300 linhas de Selenium. O fluxo fica curto, legível e fácil de manter.</p>
+        <ul class="lista-check lista-clara">
+          <li>Funções em português com logs automáticos.</li>
+          <li>Erros claros com <code>ErroRPA</code> e <code>ErroCriticoRPA</code>.</li>
+          <li>Retry, espera e tratamento de exceção no motor.</li>
+          <li>Roda igual no notebook e no servidor.</li>
+        </ul>
+      </div>
+
+      <div class="editor">
+        <div class="editor-topo">
+          <span class="bolinha v"></span><span class="bolinha a"></span><span class="bolinha g"></span>
+          <span class="editor-arquivo">fluxos/portal.py</span>
+        </div>
+<pre><code><span class="tk-com"># robô de login + captura</span>
+<span class="tk-key">from</span> capivara_rpa <span class="tk-key">import</span> Navegador
+
+<span class="tk-key">with</span> Navegador() <span class="tk-key">as</span> nav:
+    nav.abrir_url(<span class="tk-str">"https://portal.exemplo.com"</span>)
+    nav.escrever_texto(<span class="tk-str">"#usuario"</span>, <span class="tk-str">"ana"</span>)
+    nav.escrever_texto(<span class="tk-str">"#senha"</span>, senha)
+    nav.clicar_elemento(<span class="tk-str">"#entrar"</span>)
+    nav.aguardar_url_contem(<span class="tk-str">"/painel"</span>)
+    nav.capturar_tela(<span class="tk-str">"data/output/portal.png"</span>)
+
+<span class="tk-com"># o log já registra cada passo</span>
+</code></pre>
+      </div>
+    </div>
+
+    <footer class="rodape"><span>Menos código, mais processo</span><span class="pagina">06</span></footer>
+  </section>
+
+  <!-- 07 · TRACKTAB -->
+  <section class="slide slide-centro">
+    <header class="cabecalho">
+      <span class="eyebrow">TrackTab</span>
+      <h2>Pare de caçar XPath no olho.</h2>
+    </header>
+
+    <div class="grade-tracktab">
+      <div class="tracktab-texto">
+        <p class="lead">Extensão de Chrome que grava os elementos enquanto você navega. Clique no que importa, exporte JSON e use direto no robô.</p>
+        <ul class="lista-check">
+          <li>XPath completo, relativo e caminho customizado.</li>
+          <li>JSON pronto para <code>core.rpa.tracktab</code>.</li>
+          <li>Funciona com iframes e páginas dinâmicas.</li>
+          <li>Instalação em <code>chrome://extensions</code>.</li>
+        </ul>
+        <p class="nota">Chrome Web Store em breve.</p>
+      </div>
+
+      <div class="tt-demo" aria-hidden="true">
+        <div class="tt-browser">
+          <div class="tt-browser-topo">
+            <span class="bolinha v"></span><span class="bolinha a"></span><span class="bolinha g"></span>
+            <span class="tt-url">app.exemplo.com/login</span>
+          </div>
+          <div class="tt-pagina">
+            <div class="tt-marca"><span class="tt-logo-mini">◎</span> Portal do time</div>
+            <div class="tt-campo"><span>E-mail</span><span class="tt-input">ana@empresa.com</span></div>
+            <div class="tt-campo"><span>Senha</span><span class="tt-input">••••••••</span></div>
+            <div class="tt-acao">
+              <span class="tt-botao">Entrar</span>
+              <span class="tt-alvo">button.entrar</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tt-popup">
+          <div class="tt-popup-topo"><span class="tt-logo-mini">◎</span><strong>TrackTab</strong><span class="tt-versao">v1.0</span></div>
+          <div class="tt-status"><span class="tt-dot"></span> Gravando elementos</div>
+          <div class="tt-contador"><span>Capturados</span><strong>3</strong></div>
+          <div class="tt-lista">
+            <div class="tt-item"><span class="tt-tag">input</span> #email</div>
+            <div class="tt-item"><span class="tt-tag">input</span> #senha</div>
+            <div class="tt-item"><span class="tt-tag">button</span> .entrar</div>
+          </div>
+          <div class="tt-exportar">Exportar JSON</div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="rodape"><span>Seletores sem sofrimento</span><span class="pagina">07</span></footer>
+  </section>
+
+  <!-- 08 · TELAS -->
+  <section class="slide">
+    <header class="cabecalho">
+      <span class="eyebrow">Telas</span>
+      <h2>Tudo no mesmo lugar.</h2>
+      <p class="sub">Lagoa, agendamentos e monitor com a mesma identidade — tema claro e escuro.</p>
+    </header>
+
+    <div class="telas-grade">
+      <figure class="tela-grande">
+        <div class="janela-topo"><span class="bolinha v"></span><span class="bolinha a"></span><span class="bolinha g"></span><span class="janela-url">localhost:8765</span></div>
+        <img src="../capivara/assets/img/cr_light.jpg?v=3" alt="Lagoa no tema claro" width="1440" height="837" />
+        <figcaption>Lagoa: máquinas, jobs, processos e filas.</figcaption>
+      </figure>
+      <div class="telas-lado">
+        <figure class="tela-pequena">
+          <img src="../capivara/assets/img/agenda.jpg?v=3" alt="Tela de agendamentos" width="1440" height="837" />
+          <figcaption>Agendamentos com dias e feriados.</figcaption>
+        </figure>
+        <figure class="tela-pequena">
+          <img src="../capivara/assets/img/cr_dark.jpg?v=3" alt="Lagoa no tema escuro" width="1440" height="837" />
+          <figcaption>Tema escuro nativo.</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <footer class="rodape"><span>Painel web · sem Flask · zero dependência extra</span><span class="pagina">08</span></footer>
+  </section>
+
+  <!-- 09 · CLOUD -->
+  <section class="slide slide-centro">
+    <header class="cabecalho">
+      <span class="eyebrow">Novo produto · Beta público</span>
+      <h2>Capivara Cloud, em beta.</h2>
+      <p class="sub">A Lagoa orquestra robôs. O Cloud orquestra APIs.</p>
+    </header>
+
+    <div class="grade-cloud">
+      <div class="cloud-texto">
+        <p class="lead">Monte fluxos visuais, conecte Slack, e-mail, Excel, HTTP e mais, e acompanhe cada passo da execução.</p>
+        <ul class="lista-check">
+          <li>Editor visual com Drawflow</li>
+          <li>Gatilho manual e webhook</li>
+          <li>Credenciais cifradas com Fernet</li>
+          <li>Trace por passo e Swagger público</li>
+        </ul>
+        <div class="cloud-pills">
+          <span>API-first</span><span>FastAPI + SQLite</span><span>Open source</span>
+        </div>
+        <p class="nota">Beta público e gratuito. Rode local com <code>python -m app.main</code>.</p>
+      </div>
+
+      <div class="cloud-demo" aria-hidden="true">
+        <div class="cloud-janela">
+          <div class="cloud-janela-topo">
+            <span class="bolinha v"></span><span class="bolinha a"></span><span class="bolinha g"></span>
+            <span class="cloud-url">cloud.capivara.local</span>
+            <span class="cloud-beta-pill">beta</span>
+          </div>
+          <div class="cloud-corpo">
+            <div class="cloud-canvas">
+              <div class="cloud-no cloud-no-verde">
+                <span class="cloud-no-icone">⇥</span>
+                <div><strong>Webhook</strong><small>pedido criado</small></div>
+              </div>
+              <div class="cloud-linha"><span></span></div>
+              <div class="cloud-no cloud-no-azul">
+                <span class="cloud-no-icone">◇</span>
+                <div><strong>Condição</strong><small>prioridade == alta</small></div>
+              </div>
+              <div class="cloud-ramo">
+                <div class="cloud-no cloud-no-amarelo">
+                  <span class="cloud-no-icone">#</span>
+                  <div><strong>Slack</strong><small>#alertas</small></div>
+                </div>
+                <div class="cloud-no cloud-no-marrom">
+                  <span class="cloud-no-icone">✉</span>
+                  <div><strong>E-mail</strong><small>time comercial</small></div>
+                </div>
+              </div>
+            </div>
+            <div class="cloud-trace">
+              <div class="cloud-trace-topo">
+                <span class="cloud-status">concluído</span>
+                <span>3 passos · 1,2s</span>
+              </div>
+              <div class="cloud-passo"><span>1</span><div><strong>Webhook</strong><small>200 · pedido #1042</small></div></div>
+              <div class="cloud-passo"><span>2</span><div><strong>Condição</strong><small>verdadeiro</small></div></div>
+              <div class="cloud-passo"><span>3</span><div><strong>Slack</strong><small>mensagem enviada</small></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="rodape"><span>Lagoa + Cloud · dois jeitos de automatizar</span><span class="pagina">09</span></footer>
+  </section>
+
+  <!-- 10 · SEGURANÇA -->
+  <section class="slide slide-centro">
+    <header class="cabecalho">
+      <span class="eyebrow">Segurança e governança</span>
+      <h2>Automação com controle.</h2>
+      <p class="sub">O que a empresa precisa para deixar um robô rodando em produção sem perder o sono.</p>
+    </header>
+
+    <div class="grade-seguranca">
+      <article class="seg"><span class="kicker">RBAC</span><h3>Login e papéis</h3><p>Usuários locais, permissões por papel e sessão com cookie HttpOnly.</p></article>
+      <article class="seg"><span class="kicker">TOKEN</span><h3>Token por máquina</h3><p>Cada agente tem seu token; só o hash fica no banco. Revogou, acabou.</p></article>
+      <article class="seg"><span class="kicker">TLS</span><h3>HTTPS opcional</h3><p>Certificado e chave configuráveis para sair da rede local com segurança.</p></article>
+      <article class="seg"><span class="kicker">AUDIT</span><h3>Auditoria</h3><p>Quem acessou, quando, de onde e qual credencial. Exportação em CSV.</p></article>
+      <article class="seg"><span class="kicker">SLA</span><h3>Alertas</h3><p>Jobs estourados e tempo de execução aparecem no topo do painel.</p></article>
+      <article class="seg"><span class="kicker">VAULT</span><h3>Cofre</h3><p>Fernet, versões, rotação, permissão por processo e segredos mascarados no log.</p></article>
+    </div>
+
+    <div class="faixa-governanca">
+      <div><strong>Quem acessou?</strong><span>Auditoria por ator, processo e IP.</span></div>
+      <div><strong>O que rodou?</strong><span>Trace de cada passo no Monitor.</span></div>
+      <div><strong>Quando parar?</strong><span>Cancelamento cooperativo e alerta de SLA.</span></div>
+    </div>
+
+    <footer class="rodape"><span>Governança sem planilha paralela</span><span class="pagina">10</span></footer>
+  </section>
+
+  <!-- 11 · COMEÇAR -->
+  <section class="slide">
+    <header class="cabecalho">
+      <span class="eyebrow">Começar</span>
+      <h2>Do zero ao primeiro robô.</h2>
+      <p class="sub">Escolha o caminho. O resultado é o mesmo: menos Ctrl+C, Ctrl+V.</p>
+    </header>
+
+    <div class="grade-comecar">
+      <div class="terminal">
+        <div class="terminal-topo"><span class="bolinha v"></span><span class="bolinha a"></span><span class="bolinha g"></span><span class="terminal-titulo">começar</span></div>
+<pre><code><span class="tk-com"># opção 1 — biblioteca</span>
+pip install capivara-rpa
+
+<span class="tk-com"># kit completo (Selenium + pandas + cofre)</span>
+pip install <span class="tk-str">"capivara-rpa[all]"</span>
+
+<span class="tk-com"># opção 2 — repositório</span>
+git clone https://github.com/capivara-rpa/capivara.git
+
+<span class="tk-com"># opção 3 — instaladores sem Python</span>
+<span class="tk-com"># Windows, macOS e TrackTab nas releases</span>
+</code></pre>
+      </div>
+
+      <div class="comecar-cards">
+        <article class="mini-passo"><span class="kicker">PYPI</span><h3>Biblioteca</h3><p>Base leve em segundos. Use <code>[web]</code> ou <code>[all]</code>.</p></article>
+        <article class="mini-passo"><span class="kicker">GIT</span><h3>Repositório</h3><p>Clone, explore os exemplos e acompanhe as releases.</p></article>
+        <article class="mini-passo"><span class="kicker">EXE</span><h3>Instaladores</h3><p>Lagoa e agente para Windows e macOS, sem Python.</p></article>
+      </div>
+    </div>
+
+    <footer class="rodape"><span>pypi.org/project/capivara-rpa</span><span class="pagina">11</span></footer>
+  </section>
+
+  <!-- 12 · PLANOS -->
+  <section class="slide slide-centro">
+    <header class="cabecalho">
+      <span class="eyebrow">Planos</span>
+      <h2>Comece grátis. Escale com quem fez.</h2>
+      <p class="sub">O código é aberto. Se a empresa quer ir para produção rápido e com segurança, a Capivara trabalha junto.</p>
+    </header>
+
+    <div class="planos">
+      <article class="plano">
+        <img src="../capivara/assets/img/capivara.svg" alt="" width="72" height="54" />
+        <h3>Comunidade</h3>
+        <p class="preco">Grátis <span>pra sempre</span></p>
+        <ul class="lista-check">
+          <li>Template completo + Lagoa</li>
+          <li>Filas, agendamentos e cofre</li>
+          <li>Instaladores macOS e Windows</li>
+          <li>TrackTab para capturar seletores</li>
+          <li>Suporte da comunidade</li>
+        </ul>
+      </article>
+
+      <article class="plano plano-destaque">
+        <span class="selo">Sob medida</span>
+        <span class="plano-icone">EMP</span>
+        <h3>Empresas</h3>
+        <p class="preco">Implantação <span>+ suporte</span></p>
+        <ul class="lista-check">
+          <li>Mapeamento dos processos que mais doem</li>
+          <li>Instalação da Lagoa e dos agentes</li>
+          <li>Desenvolvimento dos primeiros robôs</li>
+          <li>Login, permissões, HTTPS e governança</li>
+          <li>Treinamento do time e suporte direto</li>
+        </ul>
+      </article>
+    </div>
+
+    <div class="faixa-plano">
+      <span><strong>01</strong> Baixe grátis</span>
+      <span><strong>02</strong> Rode um piloto</span>
+      <span><strong>03</strong> Escale com suporte</span>
+    </div>
+
+    <footer class="rodape"><span>Open source no core · implantação quando precisar</span><span class="pagina">12</span></footer>
+  </section>
+
+  <!-- 13 · CTA -->
+  <section class="slide slide-cta">
+    <div class="cta-grade">
+      <div class="cta-texto">
+        <span class="eyebrow">Vamos automatizar?</span>
+        <h2>Deixa que a<br /><span class="verde">Capivara</span> faz.</h2>
+        <p class="lead">Comece grátis pelo PyPI, clone o repositório, teste o Cloud beta ou fale com o time para uma implantação sob medida.</p>
+        <div class="cta-links">
+          <a href="https://pypi.org/project/capivara-rpa/">pypi.org/project/capivara-rpa</a>
+          <a href="https://github.com/capivara-rpa/capivara">github.com/capivara-rpa/capivara</a>
+          <a href="https://github.com/capivara-rpa/capivara-cloud">github.com/capivara-rpa/capivara-cloud</a>
+          <a href="https://github.com/capivara-rpa/capivara-community">github.com/capivara-rpa/capivara-community</a>
+          <a href="https://arthurfaria.tech/capivara/index.html">arthurfaria.tech/capivara</a>
+        </div>
+      </div>
+      <div class="cta-mascote">
+        <div class="mascote-halo"></div>
+        <img class="mascote" src="../capivara/assets/img/capivara.svg" alt="" width="340" height="255" />
+      </div>
+    </div>
+    <footer class="rodape"><span>Capivara · Deixa que a Capivara faz.</span><span class="pagina">13</span></footer>
+  </section>
+
+</main>
+</body>
+</html>

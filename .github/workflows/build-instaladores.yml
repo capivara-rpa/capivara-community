@@ -1,0 +1,116 @@
+name: build-instaladores
+
+# Compila os binários/instaladores da Lagoa, do Agente e da extensão TrackTab.
+# Em push para main: gera artefatos (debug).
+# Em tag v*.: anexa os binários ao release do GitHub.
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  janela:
+    name: Windows (exe)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Compilar Lagoa
+        run: pyinstaller --noconfirm packaging/lagoa.spec
+
+      - name: Compilar Agente
+        run: pyinstaller --noconfirm packaging/agente.spec
+
+      - name: Instalar Inno Setup
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          choco install innosetup -y --no-progress
+
+      - name: Gerar instalador .exe (tudo empacotado)
+        shell: pwsh
+        run: |
+          $isexe = Get-ChildItem "C:\Program Files (x86)\Inno Setup*\ISCC.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $isexe) {
+            Write-Warning "Inno Setup não encontrado; seguindo apenas com os .exe puros."
+            exit 0
+          }
+          & $isexe.FullName "packaging\inno_setup.iss"
+
+      - name: Empacotar TrackTab (.zip)
+        shell: pwsh
+        run: |
+          Compress-Archive -Path tracktab\* -DestinationPath dist\tracktab.zip -Force
+
+      - name: Empacotar artefatos
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release | Out-Null
+          Copy-Item dist\lagoa.exe release\ -Force
+          Copy-Item dist\robo_agente.exe release\ -Force
+          Copy-Item dist\tracktab.zip release\ -Force
+          if (Test-Path dist\instalador\lagoa_instalador.exe) {
+            Copy-Item dist\instalador\lagoa_instalador.exe release\ -Force
+          }
+          Get-ChildItem release\
+
+      - name: Anexar ao release (tags)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v3
+        with:
+          files: release/*
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows-binarios
+          path: release/
+
+  mac:
+    name: macOS (pacote tudo empacotado)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Gerar pacote macOS (binários + TrackTab + instalador)
+        run: bash packaging/build_mac.sh
+
+      - name: Empacotar TrackTab (.zip)
+        run: bash packaging/build_tracktab.sh dist/tracktab.zip
+
+      - name: Anexar ao release (tags)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            dist/RPA-Brasil-macos.zip
+            dist/tracktab.zip
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: macos-binarios
+          path: |
+            dist/RPA-Brasil-macos.zip
+            dist/tracktab.zip

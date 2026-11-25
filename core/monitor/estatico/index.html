@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Capivara · Monitor</title>
+    <link rel="icon" type="image/svg+xml" href="img/logo-capivara.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="sidebar-topo">
+                <a class="sidebar-logo" href="/">
+                    <img src="img/logo-capivara.svg" alt="Capivara" width="40" height="40" onerror="this.style.display='none'">
+                    <span class="sidebar-marca">
+                        <span class="sidebar-logo-text">Capivara</span>
+                        <span class="sidebar-logo-sub">Monitor</span>
+                    </span>
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav-lista">
+                    <li class="nav-item">
+                        <a href="/" class="nav-link">
+                            <span class="nav-icon">▦</span>
+                            <span class="nav-texto">Lagoa</span>
+                        </a>
+                    </li>
+                    <li class="nav-item ativo">
+                        <a href="/monitor/" class="nav-link">
+                            <span class="nav-icon">▤</span>
+                            <span class="nav-texto">Monitor</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-rodape">
+                <button type="button" class="tema-toggle" id="btn-tema" title="Alternar modo claro/escuro">
+                    <span class="tema-icone" id="tema-icone">☀</span>
+                    <span class="tema-texto" id="tema-texto">Modo escuro</span>
+                </button>
+            </div>
+        </aside>
+
+        <div class="conteudo">
+            <header class="topo">
+                <div class="topo-esq">
+                    <h2 class="topo-titulo">Monitor</h2>
+                    <p class="topo-subtitulo">Trace centralizado das execuções dos robôs</p>
+                </div>
+                <div class="topo-lado">
+                    <span class="conexao" id="conexao">
+                        <span class="pulso"></span><span id="conexao-texto">conectando…</span>
+                    </span>
+                    <span class="relogio" id="relogio">--:--:--</span>
+                </div>
+            </header>
+
+            <section class="resumo" id="resumo" aria-label="Resumo por status"></section>
+
+            <div class="main-grid">
+                <div class="painel-principal">
+                    <div class="card">
+                        <div class="card-cabecalho">
+                            <h3 class="card-titulo">Execuções</h3>
+                            <div class="filtros" id="filtros"></div>
+                        </div>
+                        <div class="card-corpo">
+                            <div class="lista" id="lista-execucoes">
+                                <p class="vazio">Carregando…</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="painel-lateral">
+                    <div class="card">
+                        <div class="card-cabecalho">
+                            <h3 class="card-titulo" id="trace-titulo">Trace</h3>
+                            <span class="trace-sub" id="trace-sub"></span>
+                        </div>
+                        <div class="card-corpo">
+                            <div class="trace" id="trace">
+                                <p class="vazio">Selecione uma execução à esquerda para ver o passo a passo.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="rodape">
+                <span>Capivara · Monitor · atualização automática a cada 2s</span>
+                <span id="atualizado">—</span>
+            </footer>
+        </div>
+    </div>
+
+    <script src="painel.js"></script>
+</body>
+</html>

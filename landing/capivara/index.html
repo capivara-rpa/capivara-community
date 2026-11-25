@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Capivara 🦫 — RPA em Python, 100% em português</title>
+<meta name="description" content="Capivara é uma ferramenta low-code de RPA em Python, 100% em português: navegador, planilhas, Lagoa, filas, agendamentos com feriados BR e cofre de credenciais. O Capivara Cloud, automação de APIs com workflows visuais, está em beta público." />
+<meta name="theme-color" content="#1FA463" />
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
+
+<!-- Open Graph (prévia no WhatsApp/LinkedIn) -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Capivara 🦫 — Deixa que a Capivara faz." />
+<meta property="og:description" content="RPA em Python, 100% em português. Robôs, Lagoa, filas, agendamentos e cofre de senhas — sem estresse." />
+<meta property="og:image" content="assets/img/cr_light.jpg?v=3" />
+<link rel="apple-touch-icon" href="assets/img/favicon.svg" />
+<meta property="og:locale" content="pt_BR" />
+
+<!-- Tema antes de pintar a tela (evita "piscar" claro → escuro) -->
+<script>
+  (function () {
+    try {
+      var salvo = localStorage.getItem("capivara-tema");
+      var escuro = salvo ? salvo === "escuro" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.setAttribute("data-tema", escuro ? "escuro" : "claro");
+    } catch (e) {}
+  })();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@700;800&display=swap" />
+<link rel="stylesheet" href="assets/styles.css?v=6" />
+<script src="assets/app.js?v=4" defer></script>
+</head>
+<body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+<!-- ============================== NAVBAR ============================== -->
+<header class="nav" id="topo">
+  <div class="nav-dentro container">
+    <a class="logo" href="#topo" aria-label="Capivara — início">
+      <span class="logo-icone" aria-hidden="true"><img src="assets/img/capivara.svg" alt="" width="30" height="23" /></span>
+      <span>Capivara</span>
+    </a>
+
+    <nav class="nav-links" id="nav-links" aria-label="Seções">
+      <a href="#comecar">Começar</a>
+      <a href="#cloud">Cloud <span class="nav-beta">beta</span></a>
+      <a href="#como-funciona">Como funciona</a>
+      <a href="#recursos">Recursos</a>
+      <a href="#codigo">Código</a>
+      <a href="#tracktab">TrackTab</a>
+      <a href="#telas">Telas</a>
+      <a href="#planos">Planos</a>
+      <a href="#comunidade">Comunidade</a>
+    </nav>
+
+    <div class="nav-acoes">
+      <a class="btn btn-sec btn-p esconde-mobile" href="https://github.com/capivara-rpa/capivara" target="_blank" rel="noopener">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0C17.3 4.7 18.3 5 18.3 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.9 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.2c0 .4.2.7.8.6A11.5 11.5 0 0 0 23.5 12C23.5 5.7 18.3.5 12 .5Z"/></svg>
+        GitHub
+      </a>
+      <button class="btn-tema" id="btn-tema" type="button" aria-label="Alternar tema claro/escuro">
+        <span class="tema-sol" aria-hidden="true">☀️</span>
+        <span class="tema-lua" aria-hidden="true">🌙</span>
+      </button>
+      <button class="btn-menu" id="btn-menu" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="conteudo">
+
+<!-- ============================== HERO ============================== -->
+<section class="hero">
+  <div class="container hero-grade">
+    <div class="hero-texto">
+      <div class="badges revelar">
+        <span class="badge">🐍 Python 3.11+</span>
+        <span class="badge">💚 Open Source</span>
+        <span class="badge">🇧🇷 100% PT-BR</span>
+        <span class="badge badge-beta">☁️ Cloud em beta</span>
+      </div>
+      <h1 class="revelar">Deixa que a<br /><span class="destaque">Capivara</span> faz.</h1>
+      <p class="sub revelar">
+        Automação de tarefas chatas com Python, sem complicação. Funções em português,
+        logs coloridos e uma <strong>Lagoa</strong> completa pra orquestrar seus robôs.
+        Você relaxa, ela trabalha. 🦫
+      </p>
+      <div class="hero-ctas revelar">
+        <a class="btn btn-pri" href="#comecar">Começar grátis →</a>
+        <a class="btn btn-sec" href="https://github.com/capivara-rpa/capivara" target="_blank" rel="noopener">Ver no GitHub</a>
+      </div>
+
+      <div class="terminal revelar" id="cmd-rapido-wrap">
+        <div class="terminal-topo">
+          <span class="bolinha v"></span><span class="bolinha a"></span><span class="bolinha g"></span>
+          <span class="terminal-titulo">terminal</span>
+          <button class="copiar" type="button" data-copiar="#cmd-rapido">Copiar</button>
+        </div>
+<pre id="cmd-rapido"><code class="sh"><span class="tk-com"># instala a biblioteca</span>
+pip install capivara-rpa
+
+<span class="tk-com"># confere a versão</span>
+capivara --version
+
+<span class="tk-com"># quer o kit completo? (Selenium + pandas + cofre)</span>
+pip install "capivara-rpa[all]"</code></pre>
+      </div>
+    </div>
+
+    <div class="hero-mascote" aria-hidden="true">
+      <div class="lago">
+        <div class="onda o1"></div>
+        <div class="onda o2"></div>
+        <button class="capivara" id="capivara" type="button" tabindex="-1" title="psiu… clica aqui"><img src="assets/img/capivara.svg" alt="" width="240" height="180" /><span class="patinho" id="patinho">🦆</span></button>
+      </div>
+      <div class="flutuante f1">⚡ <span>Job #42 concluído</span></div>
+      <div class="flutuante f2">⏰ <span>seg a sex · 06:00</span></div>
+      <div class="flutuante f3">🔐 <span>senha ••••••••</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== COMEÇAR ============================== -->
+<section class="secao" id="comecar">
+  <div class="container">
+    <header class="secao-cab revelar">
+      <span class="sobretitulo">Comece agora</span>
+      <h2>Do zero ao primeiro robô.</h2>
+      <p>Instale pelo PyPI, clone o repositório ou baixe os executáveis prontos. Escolha o caminho — o resultado é o mesmo: menos Ctrl+C, Ctrl+V.</p>
+    </header>
+
+    <div class="comecar-grade">
+      <div class="comecar-terminal revelar">
+        <div class="terminal">
+          <div class="terminal-topo">
+            <span class="bolinha v"></span><span class="bolinha a"></span><span class="bolinha g"></span>
+            <span class="terminal-titulo">começar</span>
+            <button class="copiar" type="button" data-copiar="#cmd-instalar">Copiar</button>
+          </div>
+<pre id="cmd-instalar"><code class="sh"><span class="tk-com"># opção 1 — biblioteca</span>
+pip install capivara-rpa
+
+<span class="tk-com"># kit completo (Selenium + pandas + cofre)</span>
+pip install "capivara-rpa[all]"
+
+<span class="tk-com"># opção 2 — repositório</span>
+git clone https://github.com/capivara-rpa/capivara.git
+cd capivara
+./scripts/install.sh
+
+<span class="tk-com"># opção 3 — instaladores sem Python</span>
+<span class="tk-com"># baixe ao lado: Windows, macOS ou TrackTab</span></code></pre>
+        </div>
+        <p class="comecar-nota">Windows: use <code>scripts\install.bat</code>. No zsh, mantenha as aspas em <code>"capivara-rpa[all]"</code>.</p>
+      </div>
+
+      <div class="comecar-cartoes">
+        <article class="card revelar">
+          <span class="card-emoji" aria-hidden="true">🐍</span>
+          <h3>Biblioteca Python</h3>
+          <p>A base leve instala em segundos. Use <code>[web]</code> pro navegador ou <code>[all]</code> pro kit completo.</p>
+          <a class="btn btn-pri btn-cheio" href="https://pypi.org/project/capivara-rpa/" target="_blank" rel="noopener">Abrir no PyPI</a>
+        </article>
+
+        <article class="card revelar">
+          <span class="card-emoji" aria-hidden="true">🐙</span>
+          <h3>Repositório oficial</h3>
+          <p>Clone, explore os exemplos e acompanhe as releases. Código aberto (MIT), feito no Brasil.</p>
+          <a class="btn btn-sec btn-cheio" href="https://github.com/capivara-rpa/capivara" target="_blank" rel="noopener">Clonar repositório</a>
+        </article>
+
+        <article class="card revelar">
+          <span class="card-emoji" aria-hidden="true">⬇️</span>
+          <h3>Executáveis prontos</h3>
+          <p>Lagoa + agente para Windows e macOS, sem instalar Python. A TrackTab captura seletores no Chrome.</p>
+          <div class="downloads">
+            <a class="download" href="https://github.com/capivara-rpa/capivara/releases/latest/download/control_room_instalador.exe" target="_blank" rel="noopener"><strong>Windows</strong><span>instalador .exe</span></a>
+            <a class="download" href="https://github.com/capivara-rpa/capivara/releases/latest/download/RPA-Brasil-macos.zip" target="_blank" rel="noopener"><strong>macOS</strong><span>pacote .zip</span></a>
+            <a class="download" href="https://github.com/capivara-rpa/capivara/releases/latest/download/tracktab.zip" target="_blank" rel="noopener"><strong>TrackTab</strong><span>extensão .zip</span></a>
+          </div>
+          <a class="link-seta" href="https://github.com/capivara-rpa/capivara/releases/latest" target="_blank" rel="noopener">Ver todos os arquivos →</a>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== CLOUD ============================== -->
+<section class="secao secao-alt" id="cloud">
+  <div class="container cloud-grade">
+    <div class="cloud-texto revelar">
+      <div class="badges">
+        <span class="badge badge-beta">🧪 Beta público</span>
+        <span class="badge">☁️ API-first</span>
+        <span class="badge">🐍 FastAPI + SQLite</span>
+      </div>
+      <span class="sobretitulo">Novo produto</span>
+      <h2>Capivara Cloud, em beta.</h2>
+      <p>A Lagoa orquestra robôs. O <strong>Cloud</strong> orquestra APIs. Monte fluxos visuais, conecte Slack, e-mail, Excel, HTTP e mais, e acompanhe cada passo da execução.</p>
+      <ul class="lista-check">
+        <li>Editor visual com Drawflow</li>
+        <li>Gatilho manual e webhook</li>
+        <li>Credenciais cifradas com Fernet</li>
+        <li>Trace por passo e Swagger público</li>
+      </ul>
+      <div class="hero-ctas">
+        <a class="btn btn-pri" href="https://github.com/capivara-rpa/capivara-cloud" target="_blank" rel="noopener">Entrar no beta →</a>
+        <a class="btn btn-sec" href="https://github.com/capivara-rpa/capivara-cloud-community" target="_blank" rel="noopener">Sugerir no beta</a>
+      </div>
+      <p class="cloud-nota">Beta público e gratuito nesta fase. Rode local com <code>python -m app.main</code>; sem login e sem cobrança.</p>
+    </div>
+
+    <div class="cloud-demo revelar" aria-hidden="true">
+      <div class="cloud-janela">
+        <div class="cloud-janela-topo">
+          <span class="bolinha v"></span><span class="bolinha a"></span><span class="bolinha g"></span>
+          <span class="cloud-url">cloud.capivara.local</span>
+          <span class="cloud-beta-pill">beta</span>
+        </div>
+        <div class="cloud-corpo">
+          <div class="cloud-canvas">
+            <div class="cloud-no cloud-no-verde">
+              <span class="cloud-no-icone">⇥</span>
+              <div><strong>Webhook</strong><small>pedido criado</small></div>
+            </div>
+            <div class="cloud-linha"><span></span></div>
+            <div class="cloud-no cloud-no-azul">
+              <span class="cloud-no-icone">◇</span>
+              <div><strong>Condição</strong><small>prioridade == alta</small></div>
+            </div>
+            <div class="cloud-ramo">
+              <div class="cloud-no cloud-no-amarelo">
+                <span class="cloud-no-icone">#</span>
+                <div><strong>Slack</strong><small>#alertas</small></div>
+              </div>
+              <div class="cloud-no cloud-no-marrom">
+                <span class="cloud-no-icone">✉</span>
+                <div><strong>E-mail</strong><small>time comercial</small></div>
+              </div>
+            </div>
+          </div>
+          <div class="cloud-trace">
+            <div class="cloud-trace-topo">
+              <span class="cloud-status">concluído</span>
+              <span>3 passos · 1,2s</span>
+            </div>
+            <div class="cloud-passo"><span>1</span><div><strong>Webhook</strong><small>200 · pedido #1042</small></div></div>
+            <div class="cloud-passo"><span>2</span><div><strong>Condição</strong><small>verdadeiro</small></div></div>
+            <div class="cloud-passo"><span>3</span><div><strong>Slack</strong><small>mensagem enviada</small></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== NÚMEROS ============================== -->
+<section class="numeros" aria-label="Números do projeto">
+  <div class="container numeros-grade">
+    <div class="numero revelar"><strong data-contar="600">600</strong><span>devs na comunidade</span></div>
+    <div class="numero revelar"><strong data-contar="63">63</strong><span>ações de navegador em português</span></div>
+    <div class="numero revelar"><strong data-contar="156">156</strong><span>testes automatizados</span></div>
+    <div class="numero revelar"><strong>0</strong><span>Python pra instalar a Lagoa</span></div>
+  </div>
+</section>
+
+<!-- ============================== COMO FUNCIONA ============================== -->
+<section class="secao" id="como-funciona">
+  <div class="container">
+    <header class="secao-cab revelar">
+      <span class="sobretitulo">Como funciona</span>
+      <h2>Três passos. Zero estresse.</h2>
+      <p>Do primeiro script ao robô rodando sozinho de madrugada — sem virar refém de ferramenta cara.</p>
+    </header>
+
+    <ol class="passos">
+      <li class="passo revelar">
+        <span class="passo-emoji" aria-hidden="true">✍️</span>
+        <span class="passo-num">1</span>
+        <h3>Escreva</h3>
+        <p>Use funções que falam a sua língua: <code>abrir_url</code>, <code>clicar_elemento</code>, <code>ler_csv</code>, <code>enviar_email</code>. Selenium, pandas e requests ficam por baixo dos panos.</p>
+      </li>
+      <li class="passo revelar">
+        <span class="passo-emoji" aria-hidden="true">⏰</span>
+        <span class="passo-num">2</span>
+        <h3>Agende</h3>
+        <p>Suba o robô por <strong>.zip</strong> ou <strong>repositório Git</strong> e agende por intervalo, horário ou cron. Dias úteis? Pula feriado nacional? Tá pegando.</p>
+      </li>
+      <li class="passo revelar">
+        <span class="passo-emoji" aria-hidden="true">📈</span>
+        <span class="passo-num">3</span>
+        <h3>Acompanhe</h3>
+        <p>Cada execução vira um <strong>trace</strong> passo a passo no Monitor, em tempo real. Deu erro de negócio ou de sistema? Você sabe na hora — e sabe onde.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================== RECURSOS ============================== -->
+<section class="secao secao-alt" id="recursos">
+  <div class="container">
+    <header class="secao-cab revelar">
+      <span class="sobretitulo">Recursos</span>
+      <h2>Tudo que um RPA de gente grande tem.</h2>
+      <p>Só que em Python, em português e sem licença por robô.</p>
+    </header>
+
+    <div class="cards">
+      <article class="card revelar">
+        <span class="card-emoji" aria-hidden="true">🌐</span>
+        <h3>Navegador em português</h3>
+        <p>63 ações prontas sobre Selenium 4, com driver automático. Seletor por XPath, ID ou CSS — você escolhe.</p>
+      </article>
+      <article class="card revelar">
+        <span class="card-emoji" aria-hidden="true">🎛️</span>
+        <h3>Lagoa</h3>
+        <p>Onde a mágica das capivaras acontece. Orquestrador de robôs: máquinas, processos, jobs, pools por tag e cancelamento de job em execução.</p>
+      </article>
+      <article class="card revelar">
+        <span class="card-emoji" aria-hidden="true">📋</span>
+        <h3>Filas de trabalho</h3>
+        <p>Datapool transacional com prioridade por item, retentativas, pausar/retomar e rodízio entre robôs.</p>
+      </article>
+      <article class="card revelar">
+        <span class="card-emoji" aria-hidden="true">📅</span>
+        <h3>Agendamentos BR</h3>
+        <p>Intervalo, diário ou cron. Escolhe os dias, pula fim de semana e feriados nacionais (até Carnaval e Corpus Christi).</p>
+      </article>
+      <article class="card revelar">
+        <span class="card-emoji" aria-hidden="true">🔐</span>
+        <h3>Cofre de credenciais</h3>
+        <p>Segredos cifrados, versões, rotação, permissão por processo e auditoria. Senha nunca aparece no log.</p>
+      </article>
+      <article class="card revelar">
+        <span class="card-emoji" aria-hidden="true">📡</span>
+        <h3>Monitor em tempo real</h3>
+        <p>Trace de cada execução com status de negócio, sistêmico e crítico. Atualiza sozinho, sem F5.</p>
+      </article>
+      <article class="card revelar">
+        <span class="card-emoji" aria-hidden="true">🌈</span>
+        <h3>Logs coloridos</h3>
+        <p>Terminal bonito com Loguru + rich, arquivo com rotação e tabelas de dados legíveis. Debug vira passeio.</p>
+      </article>
+      <article class="card revelar">
+        <span class="card-emoji" aria-hidden="true">📦</span>
+        <h3>Robô por .zip ou Git</h3>
+        <p>Instale pela tela. Cada robô ganha seu próprio <code>.venv</code> com o <code>requirements.txt</code> dele.</p>
+      </article>
+      <article class="card revelar">
+        <span class="card-emoji" aria-hidden="true">🛡️</span>
+        <h3>Login e permissões</h3>
+        <p>Usuários, papéis, token por máquina, HTTPS opcional e SLA com alerta de job estourado.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== CÓDIGO ============================== -->
+<section class="secao" id="codigo">
+  <div class="container codigo-grade">
+    <header class="secao-cab secao-cab-esq revelar">
+      <span class="sobretitulo">Mostra o código</span>
+      <h2>Lê como português. Roda como Python.</h2>
+      <p>Iniciante entende de primeira. Sênior agradece pelo log, pelo retry e pelo tratamento de erro já embutidos.</p>
+      <ul class="lista-check">
+        <li>Esperas inteligentes e retentativa automática</li>
+        <li><code>ErroRPA</code> pra erro de negócio, sem drama</li>
+        <li>Credenciais vindas do cofre, nunca do código</li>
+      </ul>
+    </header>
+
+    <div class="editor revelar">
+      <div class="abas" role="tablist" aria-label="Exemplos de código">
+        <button role="tab" id="aba-web" aria-selected="true" aria-controls="painel-web" class="aba ativa">🌐 web.py</button>
+        <button role="tab" id="aba-dados" aria-selected="false" aria-controls="painel-dados" class="aba" tabindex="-1">📊 dados.py</button>
+        <button role="tab" id="aba-robo" aria-selected="false" aria-controls="painel-robo" class="aba" tabindex="-1">🤖 main.py</button>
+        <button class="copiar copiar-editor" type="button" data-copiar-ativo>Copiar</button>
+      </div>
+
+<pre role="tabpanel" id="painel-web" aria-labelledby="aba-web" class="painel ativo"><code class="py">from core.rpa.browser import Navegador
+
+with Navegador() as nav:
+    nav.abrir_url("https://portal.exemplo.com.br")
+    nav.escrever_texto("@usuario", "capivara")
+    nav.escrever_texto("@senha", senha, enter=True)
+
+    nav.aguardar_elemento("#painel", descricao="Painel carregou")
+    total = nav.ler_texto("#total-pedidos")
+    nav.capturar_tela("pedidos_do_dia")</code></pre>
+
+<pre role="tabpanel" id="painel-dados" aria-labelledby="aba-dados" class="painel" hidden><code class="py">from core.rpa.dados import ler_csv, filtrar_linhas, escrever_planilha
+from core.rpa.email import enviar_email
+
+clientes = ler_csv("data/input/clientes.csv")
+sp = filtrar_linhas(clientes, "estado == 'SP'")
+
+relatorio = escrever_planilha(
+    {"Todos": clientes, "Somente_SP": sp},
+    "data/output/relatorio.xlsx",
+)
+enviar_email("time@empresa.com.br", "Relatório do dia 🦫", anexos=[relatorio])</code></pre>
+
+<pre role="tabpanel" id="painel-robo" aria-labelledby="aba-robo" class="painel" hidden><code class="py"># Robô publicado na Lagoa (.zip ou Git)
+from core.tratador import ErroRPA
+
+
+def rodar(navegador=None, agente=None, item=None):
+    cred = agente.credencial("portal")  # {"usuario": ..., "senha": ...}
+
+    if item["dados"]["cpf"] == "":
+        raise ErroRPA("Item sem CPF — volta pra fila")
+
+    navegador.abrir_url("https://portal.exemplo.com.br")
+    return True</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== TRACKTAB ============================== -->
+<section class="secao" id="tracktab">
+  <div class="container tracktab-grade">
+    <div class="tracktab-texto revelar">
+      <span class="sobretitulo">TrackTab</span>
+      <h2>Pare de caçar XPath no olho.</h2>
+      <p>Extensão de Chrome que grava os elementos enquanto você navega. Clique no que importa, exporte JSON e use direto no robô.</p>
+      <ul class="lista-check">
+        <li>Captura nome, tag, texto e XPath completo/relativo</li>
+        <li>Exporta JSON pronto para <code>core.rpa.tracktab</code></li>
+        <li>Funciona em qualquer site, inclusive iframes</li>
+      </ul>
+      <div class="hero-ctas">
+        <a class="btn btn-pri" href="https://github.com/capivara-rpa/capivara/releases/latest/download/tracktab.zip" target="_blank" rel="noopener">Baixar TrackTab</a>
+        <a class="btn btn-sec" href="https://github.com/capivara-rpa/capivara/tree/main/tracktab" target="_blank" rel="noopener">Ver código</a>
+      </div>
+      <p class="tracktab-nota">Instale em <code>chrome://extensions</code> → “Carregar sem compactação”. A versão da Chrome Web Store está em breve.</p>
+    </div>
+
+    <div class="tracktab-demo revelar" aria-hidden="true">
+      <div class="tt-cena">
+        <div class="tt-browser">
+          <div class="tt-browser-topo">
+            <span class="bolinha v"></span><span class="bolinha a"></span><span class="bolinha g"></span>
+            <span class="tt-url">portal.exemplo.com.br/login</span>
+          </div>
+          <div class="tt-pagina">
+            <div class="tt-marca"><span class="tt-logo-mini">◎</span> Portal</div>
+            <div class="tt-campo"><span>Usuário</span><div class="tt-input">capivara</div></div>
+            <div class="tt-campo"><span>Senha</span><div class="tt-input">••••••••</div></div>
+            <div class="tt-acao">
+              <span class="tt-botao">Entrar</span>
+              <span class="tt-alvo">#entrar</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tt-popup">
+          <div class="tt-popup-topo"><span class="tt-logo-mini">◎</span><strong>TrackTab</strong><span class="tt-versao">v1.0</span></div>
+          <div class="tt-status"><span class="tt-dot"></span> Gravando elementos</div>
+          <div class="tt-contador"><span>Elementos capturados:</span><strong>3</strong></div>
+          <div class="tt-lista">
+            <div class="tt-item"><span class="tt-tag">input</span><span>#usuario</span></div>
+            <div class="tt-item"><span class="tt-tag">input</span><span>#senha</span></div>
+            <div class="tt-item"><span class="tt-tag">button</span><span>#entrar</span></div>
+          </div>
+          <div class="tt-exportar">⬇ Exportar JSON</div>
+        </div>
+      </div>
+
+      <pre class="tt-json"><code>{
+  "nome": "entrar",
+  "tag": "button",
+  "texto": "Entrar",
+  "fullXpath": "/html/body/form/button",
+  "relativeXpath": "//button[@id='entrar']"
+}</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== TELAS ============================== -->
+<section class="secao secao-alt" id="telas">
+  <div class="container">
+    <header class="secao-cab revelar">
+      <span class="sobretitulo">Telas</span>
+      <h2>Uma Lagoa que dá gosto de abrir.</h2>
+      <p>Tema claro e escuro, atualização em tempo real e tudo em português. Roda no seu servidor — ou no seu notebook.</p>
+    </header>
+
+    <div class="telas revelar">
+      <div class="telas-abas" role="tablist" aria-label="Escolha a tela">
+        <button role="tab" class="chip ativo" aria-selected="true" data-tela="assets/img/cr_light.jpg?v=3" data-alt="Lagoa no tema claro: máquinas online, jobs e processos">☀️ Lagoa</button>
+        <button role="tab" class="chip" aria-selected="false" data-tela="assets/img/cr_dark.jpg?v=3" data-alt="Lagoa no tema escuro">🌙 Tema escuro</button>
+        <button role="tab" class="chip" aria-selected="false" data-tela="assets/img/agenda.jpg?v=3" data-alt="Tela de agendamentos com dias da semana e próximos disparos">⏰ Agendamentos</button>
+      </div>
+      <figure class="janela">
+        <div class="janela-topo" aria-hidden="true">
+          <span class="bolinha v"></span><span class="bolinha a"></span><span class="bolinha g"></span>
+          <span class="janela-url">localhost:8765</span>
+        </div>
+        <img id="tela-img" src="assets/img/cr_light.jpg?v=3" width="1440" height="837" loading="lazy" alt="Lagoa no tema claro: máquinas online, jobs e processos" />
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== PLANOS ============================== -->
+<section class="secao" id="planos">
+  <div class="container">
+    <header class="secao-cab revelar">
+      <span class="sobretitulo">Planos</span>
+      <h2>Comece grátis. Escale com quem fez.</h2>
+      <p>O código é aberto. Se a sua empresa quer ir pra produção rápido e com segurança, eu coloco a Capivara pra trabalhar com você.</p>
+    </header>
+
+    <div class="planos">
+      <article class="plano revelar">
+        <img class="plano-emoji plano-img" src="assets/img/capivara.svg" alt="" width="64" height="48" />
+        <h3>Comunidade</h3>
+        <p class="preco">Grátis <span>pra sempre</span></p>
+        <ul class="lista-check">
+          <li>Template completo + Lagoa</li>
+          <li>Filas, agendamentos e cofre</li>
+          <li>Instaladores macOS e Windows</li>
+          <li>Extensão TrackTab pra capturar seletores</li>
+          <li>Suporte da comunidade</li>
+        </ul>
+        <a class="btn btn-sec btn-cheio" href="https://github.com/capivara-rpa/capivara/releases/latest" target="_blank" rel="noopener">Baixar instaladores</a>
+      </article>
+
+      <article class="plano plano-destaque revelar">
+        <span class="selo">Mais pedido</span>
+        <span class="plano-emoji" aria-hidden="true">🏢</span>
+        <h3>Empresas</h3>
+        <p class="preco">Sob medida <span>implantação + suporte</span></p>
+        <ul class="lista-check">
+          <li>Mapeamento dos processos que mais doem</li>
+          <li>Instalação da Lagoa e dos agentes</li>
+          <li>Desenvolvimento dos primeiros robôs</li>
+          <li>Login, permissões, HTTPS e governança</li>
+          <li>Treinamento do time e suporte direto</li>
+        </ul>
+        <a class="btn btn-pri btn-cheio" href="https://wa.me/5511991073150?text=Oi%20Arthur!%20Quero%20implantar%20a%20Capivara%20(RPA%20em%20Python)%20na%20minha%20empresa%20%F0%9F%A6%AB" target="_blank" rel="noopener">Falar no WhatsApp</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== COMUNIDADE ============================== -->
+<section class="secao secao-alt" id="comunidade">
+  <div class="container comunidade">
+    <div class="comunidade-texto revelar">
+      <span class="sobretitulo">Comunidade</span>
+      <h2>~600 devs já estão no rio. 🌊</h2>
+      <p>Do estagiário que nunca abriu um Selenium ao sênior que já orquestrou centenas de bots. Aqui todo mundo se dá bem — igual capivara.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-pri" href="https://github.com/capivara-rpa/capivara" target="_blank" rel="noopener">⭐ Dar uma estrela</a>
+        <a class="btn btn-sec" href="https://github.com/capivara-rpa/capivara-community" target="_blank" rel="noopener">Entrar na comunidade</a>
+        <a class="btn btn-sec" href="https://github.com/capivara-rpa/capivara-community/issues" target="_blank" rel="noopener">Sugerir melhoria</a>
+      </div>
+    </div>
+    <ul class="contribuir revelar">
+      <li><span aria-hidden="true">🐛</span><div><strong>Achou um bug?</strong><p>Abra uma issue com o log — a gente resolve junto.</p></div></li>
+      <li><span aria-hidden="true">🧩</span><div><strong>Criou uma função útil?</strong><p>Manda um PR. Português, log e <code>ErroRPA</code> e tá valendo.</p></div></li>
+      <li><span aria-hidden="true">🤖</span><div><strong>Publicou um robô?</strong><p>Coloca num repo Git público e qualquer Lagoa instala com um clique.</p></div></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================== FAQ ============================== -->
+<section class="secao" id="faq">
+  <div class="container estreito">
+    <header class="secao-cab revelar">
+      <span class="sobretitulo">Perguntas frequentes</span>
+      <h2>Bora tirar as dúvidas.</h2>
+    </header>
+
+    <div class="faq">
+      <details class="revelar">
+        <summary>Preciso saber Python pra usar?</summary>
+        <p>O básico ajuda, mas as funções foram feitas pra ler como português. Se você entende <code>nav.clicar_elemento("#entrar")</code>, já dá pra começar. O template vem com exemplos e um guia passo a passo.</p>
+      </details>
+      <details class="revelar">
+        <summary>Como pego os seletores dos elementos?</summary>
+        <p>Use a extensão <a href="#tracktab"><strong>TrackTab</strong></a>: ela grava os elementos enquanto você navega e exporta um JSON com XPath completo e relativo. O Capivara lê esse arquivo com <code>core.rpa.tracktab</code>.</p>
+      </details>
+      <details class="revelar">
+        <summary>O que é o Capivara Cloud?</summary>
+        <p>É um produto separado, focado em <strong>automação de APIs</strong>: você monta workflows visuais, conecta serviços como Slack, e-mail, Excel e HTTP, e acompanha o trace de cada execução. Está em <a href="#cloud"><strong>beta público e gratuito</strong></a> nesta fase — rode local e envie sugestões pela comunidade do Cloud.</p>
+      </details>
+      <details class="revelar">
+        <summary>Substitui ferramentas proprietárias de RPA?</summary>
+        <p>Pra boa parte dos processos, sim: tem Lagoa, agentes, filas, agendamentos e cofre de credenciais. A diferença é que é código aberto, em Python, sem licença por robô — e você tem controle total.</p>
+      </details>
+      <details class="revelar">
+        <summary>Roda em Windows e macOS?</summary>
+        <p>Sim. Os robôs rodam onde tiver Python 3.11+ e Chrome. A Lagoa e o agente também têm instaladores prontos (sem exigir Python) para Windows e macOS, e há Dockerfile pra servidor.</p>
+      </details>
+      <details class="revelar">
+        <summary>Minhas senhas ficam seguras?</summary>
+        <p>Ficam cifradas no cofre (Fernet), com versões, rotação, permissão por processo e trilha de auditoria. Os logs mascaram senhas e tokens automaticamente.</p>
+      </details>
+      <details class="revelar">
+        <summary>Vocês implantam na minha empresa?</summary>
+        <p>Sim! Faço o mapeamento, a instalação, os primeiros robôs e o treinamento do time. É só chamar no WhatsApp pelo botão do plano Empresas.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== CTA FINAL ============================== -->
+<section class="cta-final">
+  <div class="container cta-caixa revelar">
+    <img class="cta-emoji" src="assets/img/capivara.svg" alt="" width="120" height="90" />
+    <h2>Larga o Ctrl+C, Ctrl+V.<br />Deixa que a Capivara faz.</h2>
+    <p>Automação sem estresse, em Python e em português.</p>
+    <div class="hero-ctas centro">
+      <a class="btn btn-amarelo" href="#comecar">Começar agora</a>
+      <a class="btn btn-vidro" href="https://wa.me/5511991073150?text=Oi%20Arthur!%20Quero%20saber%20mais%20sobre%20a%20Capivara%20%F0%9F%A6%AB" target="_blank" rel="noopener">Falar com o Arthur</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============================== FOOTER ============================== -->
+<footer class="rodape">
+  <div class="container rodape-dentro">
+    <a class="logo" href="#topo"><span class="logo-icone" aria-hidden="true"><img src="assets/img/capivara.svg" alt="" width="30" height="23" /></span><span>Capivara</span></a>
+    <p>Feito com 🦫 no Brasil 🇧🇷 por <a href="https://arthurfaria.tech" target="_blank" rel="noopener">Arthur Faria</a></p>
+    <nav aria-label="Links do rodapé">
+      <a href="https://github.com/capivara-rpa/capivara" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://pypi.org/project/capivara-rpa/" target="_blank" rel="noopener">PyPI</a>
+      <a href="https://github.com/capivara-rpa/capivara-cloud" target="_blank" rel="noopener">Cloud beta</a>
+      <a href="https://github.com/capivara-rpa/capivara-community" target="_blank" rel="noopener">Comunidade</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://arthurfaria.tech" target="_blank" rel="noopener">Portfólio</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>

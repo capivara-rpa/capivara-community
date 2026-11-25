@@ -1,8 +1,8 @@
 # Como contribuir
 
-Obrigado por querer melhorar a Capivara. Este repositório é o espaço de
-**ideias e avaliação**; o código estável vive no
-[repositório oficial](https://github.com/capivara-rpa/capivara).
+Obrigado por querer melhorar a Capivara. Este repositório é um **snapshot
+funcional** da oficial: serve para testar ideias, discutir RFCs e validar exemplos.
+O código estável vive no [repositório oficial](https://github.com/capivara-rpa/capivara).
 
 ## Antes de abrir
 
