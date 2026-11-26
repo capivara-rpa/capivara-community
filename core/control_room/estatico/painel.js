@@ -32,6 +32,10 @@ const estado = {
     visaoAgenda: "lista",
     calendario: { ano: new Date().getFullYear(), mes: new Date().getMonth() + 1, eventos: [] },
     processoVariaveis: null,
+    fluxos: [],
+    fluxoEditando: null,
+    fluxoRascunho: [],
+    pddAtual: null,
 };
 
 const el = {
@@ -165,6 +169,25 @@ const el = {
     jobAcoes: document.getElementById("job-acoes"),
     jobTrace: document.getElementById("job-trace"),
     jobFechar: document.getElementById("job-fechar"),
+    btnNovoFluxo: document.getElementById("btn-novo-fluxo"),
+    formFluxo: document.getElementById("form-fluxo"),
+    pdNome: document.getElementById("pd-nome"),
+    pdExecucoes: document.getElementById("pd-execucoes"),
+    pdProcesso: document.getElementById("pd-processo"),
+    pdDescricao: document.getElementById("pd-descricao"),
+    pdPassosTexto: document.getElementById("pd-passos-texto"),
+    pdGerarTexto: document.getElementById("pd-gerar-texto"),
+    pdPassos: document.getElementById("pd-passos"),
+    pdCanvas: document.getElementById("pd-canvas"),
+    pdCancelar: document.getElementById("pd-cancelar"),
+    pdErro: document.getElementById("pd-erro"),
+    fluxos: document.getElementById("corpo-fluxos"),
+    dialogPdd: document.getElementById("dialog-pdd"),
+    pddTitulo: document.getElementById("pdd-titulo"),
+    pddTexto: document.getElementById("pdd-texto"),
+    pddFechar: document.getElementById("pdd-fechar"),
+    pddImprimir: document.getElementById("pdd-imprimir"),
+    pddBaixar: document.getElementById("pdd-baixar"),
 };
 
 // ---------- utilitários ----------
@@ -233,6 +256,7 @@ async function carregar() {
             papeis: dados.papeis || [],
             permissoes: dados.permissoes || [],
             alertas: dados.alertas || [],
+            fluxos: dados.fluxos || [],
             sla: dados.sla || {},
             auth: !!dados.auth,
             sessao: dados.sessao || null,
@@ -254,6 +278,7 @@ async function carregar() {
         renderAuditoria();
         renderUsuarios();
         renderPapeis();
+        renderFluxos();
         renderSla();
         preencherProcessosSelects();
         if (estado.visaoAgenda === "calendario") {
@@ -671,6 +696,7 @@ const TITULOS = {
     dispositivos: ["Dispositivos", "Máquinas registradas · estado, tags e tokens"],
     agendamentos: ["Agendamentos", "Disparos automáticos por intervalo, horário ou cron"],
     automacoes: ["Automações", "Publique e gerencie robôs (.zip com rpa.json)"],
+    bpmn: ["Fluxos & PDD", "Desenhe o processo e gere a documentação automaticamente"],
     filas: ["Filas", "Filas de trabalho (datapool) e seus itens"],
     assets: ["Credenciais", "Assets e segredos usados pelos robôs"],
     acessos: ["Acessos", "Usuários, papéis e permissões"],
@@ -1469,6 +1495,265 @@ function abrirFila(id) {
     carregar();
 }
 
+// ---------- fluxos e PDD ----------
+const PD_TIPOS = {
+    inicio: { rotulo: "Início", cor: "#1FA463", icone: "●" },
+    acao: { rotulo: "Ação", cor: "#1F5FD1", icone: "▶" },
+    decisao: { rotulo: "Decisão", cor: "#E0A400", icone: "◆" },
+    excecao: { rotulo: "Exceção", cor: "#C0392B", icone: "!" },
+    fim: { rotulo: "Fim", cor: "#8A8378", icone: "■" },
+};
+const PD_REGRAS_TEXTO = [
+    { padrao: /^(se|caso)\s+/i, tipo: "decisao", ramo: "sim" },
+    { padrao: /^(senão|senao|else|caso contrário|caso contrario)\s+/i, tipo: "decisao", ramo: "nao" },
+    { padrao: /^(erro|exceção|excecao|falha)\s+/i, tipo: "excecao", ramo: "" },
+    { padrao: /^fim\b/i, tipo: "fim", ramo: "" },
+    { padrao: /^(início|inicio)\b/i, tipo: "inicio", ramo: "" },
+];
+
+function passosDoTexto(texto) {
+    return String(texto || "").split(/\r?\n/).map((linha) => linha.trim()).filter(Boolean).map((nome) => {
+        let tipo = "acao";
+        let sim = "";
+        let nao = "";
+        for (const regra of PD_REGRAS_TEXTO) {
+            if (regra.padrao.test(nome)) {
+                tipo = regra.tipo;
+                if (regra.ramo === "sim") sim = "Sim";
+                if (regra.ramo === "nao") nao = "Não";
+                break;
+            }
+        }
+        return { nome, tipo, detalhe: "", sim, nao };
+    });
+}
+
+function coletarPassos() {
+    if (!el.pdPassos) return estado.fluxoRascunho.map((p) => ({ ...p }));
+    return Array.from(el.pdPassos.querySelectorAll(".pd-passo")).map((linha, i) => {
+        const tipo = linha.querySelector(".pd-tipo").value;
+        return {
+            nome: linha.querySelector(".pd-nome").value.trim(),
+            tipo,
+            detalhe: linha.querySelector(".pd-detalhe").value.trim(),
+            sim: tipo === "decisao" ? (linha.querySelector(".pd-sim")?.value || "").trim() : "",
+            nao: tipo === "decisao" ? (linha.querySelector(".pd-nao")?.value || "").trim() : "",
+            x: Number(estado.fluxoRascunho[i]?.x ?? 60),
+            y: Number(estado.fluxoRascunho[i]?.y ?? 60 + i * 104),
+        };
+    });
+}
+
+function nosDoDiagrama() {
+    const passos = estado.fluxoRascunho || [];
+    const primeiro = passos[0] || { x: 60 };
+    const ultimo = passos[passos.length - 1] || { x: 60, y: 10 };
+    return [
+        { nome: "Início", tipo: "inicio", x: primeiro.x ?? 60, y: 12 },
+        ...passos.map((p, i) => ({ ...p, indice: i })),
+        { nome: "Fim", tipo: "fim", x: ultimo.x ?? 60, y: (ultimo.y ?? 10) + 104 },
+    ];
+}
+
+function desenharLinhas() {
+    const svg = el.pdCanvas?.querySelector("svg.pd-linhas");
+    if (!svg) return;
+    const nos = nosDoDiagrama();
+    let tracos = `<defs><marker id="pd-seta" viewBox="0 0 10 10" refX="9" refY="5"
+        markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--text-secondary)"></path></marker></defs>`;
+    for (let i = 0; i < nos.length - 1; i += 1) {
+       const atual = nos[i];
+        const proximo = nos[i + 1];
+        const x1 = (atual.x ?? 60) + 95;
+        const y1 = (atual.y ?? 60) + 58;
+        const x2 = (proximo.x ?? 60) + 95;
+        const y2 = proximo.y ?? 60;
+        const meio = (y1 + y2) / 2;
+        tracos += `<path d="M ${x1} ${y1} C ${x1} ${meio}, ${x2} ${meio}, ${x2} ${y2}" marker-end="url(#pd-seta)"></path>`;
+        if (atual.tipo === "decisao") {
+            tracos += `<text x="${x1 + 9}" y="${meio - 4}">sim</text>`;
+            if (atual.nao) {
+                tracos += `<text class="pd-ramo-nao" x="${x1 - 34}" y="${meio - 4}">não: ${escapar(String(atual.nao).slice(0, 18))}</text>`;
+            }
+        }
+    }
+    svg.innerHTML = tracos;
+}
+
+function renderCanvas() {
+    if (!el.pdCanvas) return;
+    const nos = nosDoDiagrama();
+    const altura = Math.max(300, ...nos.map((n) => (n.y ?? 0) + 96));
+    const largura = Math.max(560, ...nos.map((n) => (n.x ?? 0) + 240));
+    el.pdCanvas.style.height = `${altura}px`;
+    el.pdCanvas.innerHTML = `<svg class="pd-linhas" width="${largura}" height="${altura}"></svg>` +
+        nos.map((n) => {
+            const info = PD_TIPOS[n.tipo] || PD_TIPOS.acao;
+            const arrastavel = Number.isInteger(n.indice) ? ` data-pd-indice="${n.indice}"` : "";
+            const ramo = n.tipo === "decisao" && n.nao ? `<small>não: ${escapar(n.nao)}</small>` : "";
+            return `<div class="pd-no tipo-${n.tipo}"${arrastavel}
+                style="left:${n.x}px;top:${n.y}px;--cor:${info.cor}">
+                <span class="pd-no-icone">${info.icone}</span>
+                <span class="pd-no-corpo"><strong>${escapar(n.nome)}</strong>
+                <small>${info.rotulo}</small>${ramo}</span></div>`;
+        }).join("");
+    desenharLinhas();
+}
+
+function renderPassosEditaveis(passos) {
+    estado.fluxoRascunho = (passos || []).map((p, i) => ({
+        nome: p.nome || "Nova etapa",
+        tipo: PD_TIPOS[p.tipo] ? p.tipo : "acao",
+        detalhe: p.detalhe || "",
+        sim: p.sim || "",
+        nao: p.nao || "",
+        x: Number.isFinite(Number(p.x)) ? Number(p.x) : 60,
+        y: Number.isFinite(Number(p.y)) ? Number(p.y) : 60 + i * 104,
+    }));
+    if (!el.pdPassos) return;
+    el.pdPassos.innerHTML = estado.fluxoRascunho.map((p, i) => `
+        <div class="pd-passo" data-i="${i}">
+            <select class="pd-tipo" aria-label="Tipo do passo">
+                ${Object.entries(PD_TIPOS).map(([valor, info]) =>
+                    `<option value="${valor}"${valor === p.tipo ? " selected" : ""}>${info.rotulo}</option>`).join("")}
+            </select>
+            <input class="pd-nome" value="${escapar(p.nome)}" placeholder="descrição do passo">
+            <input class="pd-detalhe" value="${escapar(p.detalhe)}" placeholder="detalhe (opcional)">
+            ${p.tipo === "decisao" ? `
+            <input class="pd-sim" value="${escapar(p.sim)}" placeholder="sim →">
+            <input class="pd-nao" value="${escapar(p.nao)}" placeholder="não →">` : ""}
+            <button type="button" class="acao" data-pd-acao="subir" title="Subir"${i === 0 ? " disabled" : ""}>↑</button>
+            <button type="button" class="acao" data-pd-acao="descer" title="Descer"${i === estado.fluxoRascunho.length - 1 ? " disabled" : ""}>↓</button>
+            <button type="button" class="acao perigo" data-pd-acao="remover" title="Remover">×</button>
+        </div>`).join("");
+    renderCanvas();
+}
+
+function iniciarArraste(evento) {
+    const no = evento.target.closest(".pd-no[data-pd-indice]");
+    if (!no || !el.pdCanvas) return;
+    const indice = Number(no.dataset.pdIndice);
+    const passo = estado.fluxoRascunho[indice];
+    if (!passo) return;
+    evento.preventDefault();
+    const caixa = el.pdCanvas.getBoundingClientRect();
+    const deslocamentoX = evento.clientX - caixa.left - parseFloat(no.style.left || "0");
+    const deslocamentoY = evento.clientY - caixa.top - parseFloat(no.style.top || "0");
+    no.setPointerCapture(evento.pointerId);
+    const mover = (e) => {
+        passo.x = Math.max(4, Math.round(e.clientX - caixa.left - deslocamentoX));
+        passo.y = Math.max(4, Math.round(e.clientY - caixa.top - deslocamentoY));
+        no.style.left = `${passo.x}px`;
+        no.style.top = `${passo.y}px`;
+        desenharLinhas();
+    };
+    const parar = () => {
+        no.removeEventListener("pointermove", mover);
+        no.removeEventListener("pointerup", parar);
+    };
+    no.addEventListener("pointermove", mover);
+    no.addEventListener("pointerup", parar);
+}
+
+function novoFluxo() {
+    estado.fluxoEditando = "novo";
+    el.formFluxo.classList.remove("oculto");
+    el.pdNome.value = "";
+    el.pdExecucoes.value = "1";
+    el.pdProcesso.value = "";
+    el.pdDescricao.value = "";
+    el.pdPassosTexto.value = "";
+    el.pdErro.textContent = "";
+    renderPassosEditaveis([{ nome: "Abrir o sistema", tipo: "acao", detalhe: "" }]);
+    el.pdNome.focus();
+}
+
+function editarFluxo(id) {
+    const fluxo = estado.fluxos.find((f) => String(f.id) === String(id));
+    if (!fluxo) return;
+    estado.fluxoEditando = fluxo.id;
+    el.formFluxo.classList.remove("oculto");
+    el.pdNome.value = fluxo.nome || "";
+    el.pdExecucoes.value = fluxo.execucoes_por_dia || 1;
+    el.pdProcesso.value = fluxo.processo_id ? String(fluxo.processo_id) : "";
+    el.pdDescricao.value = fluxo.descricao || "";
+    el.pdPassosTexto.value = "";
+    el.pdErro.textContent = "";
+    renderPassosEditaveis(fluxo.passos || []);
+}
+
+function cancelarFluxo() {
+    estado.fluxoEditando = null;
+    estado.fluxoRascunho = [];
+    el.formFluxo.classList.add("oculto");
+    el.pdErro.textContent = "";
+}
+
+async function salvarFluxo(evento) {
+    evento.preventDefault();
+    const passos = coletarPassos().filter((p) => p.nome);
+    if (!passos.length) {
+        el.pdErro.textContent = "Descreva ao menos um passo do processo.";
+        return;
+    }
+    const corpo = {
+        nome: el.pdNome.value.trim(),
+        execucoes_por_dia: Number(el.pdExecucoes.value),
+        descricao: el.pdDescricao.value.trim(),
+        processo_id: el.pdProcesso.value ? Number(el.pdProcesso.value) : null,
+        passos,
+    };
+    const editando = estado.fluxoEditando !== "novo" ? estado.fluxoEditando : null;
+    try {
+        await enviarJSON(editando ? `/api/orq/fluxos/${editando}` : "/api/orq/fluxos", corpo);
+        cancelarFluxo();
+        carregar();
+    } catch (erro) {
+        el.pdErro.textContent = "Falha ao salvar: " + erro.message;
+    }
+}
+
+function renderFluxos() {
+    if (!el.fluxos) return;
+    el.fluxos.innerHTML = estado.fluxos.map((f) => `
+        <tr>
+            <td><strong>${escapar(f.nome)}</strong></td>
+            <td>${Number(f.execucoes_por_dia) || 1}</td>
+            <td>${Number(f.qtd_passos) || 0}</td>
+            <td>v${Number(f.versao) || 1}</td>
+            <td>${haQuanto(f.atualizado_em || f.criado_em)}</td>
+            <td><div class="acoes">
+                <button type="button" class="acao" data-fluxo-acao="editar" data-id="${f.id}">Editar</button>
+                <button type="button" class="acao" data-fluxo-acao="pdd" data-id="${f.id}">Ver PDD</button>
+                <button type="button" class="acao perigo" data-fluxo-acao="remover" data-id="${f.id}">Remover</button>
+            </div></td>
+        </tr>`).join("") || `<tr><td colspan="6" class="vazio">Nenhum fluxo cadastrado. Clique em “+ Novo fluxo”.</td></tr>`;
+}
+
+async function abrirPdd(id) {
+    try {
+        const dados = await buscarJSON(`/api/orq/fluxos/${id}`);
+        estado.pddAtual = dados.fluxo.id;
+        el.pddTitulo.textContent = `PDD · ${dados.fluxo.nome} (v${dados.fluxo.versao})`;
+        el.pddTexto.textContent = dados.markdown || "";
+        el.dialogPdd.showModal();
+    } catch (erro) {
+        alert("Não foi possível abrir o PDD: " + erro.message);
+    }
+}
+
+async function removerFluxo(id) {
+    if (!window.confirm("Remover este fluxo e seu PDD?")) return;
+    try {
+        await enviarJSON(`/api/orq/fluxos/${id}/remover`, {});
+        if (String(estado.fluxoEditando) === String(id)) cancelarFluxo();
+        carregar();
+    } catch (erro) {
+        alert("Falha ao remover: " + erro.message);
+    }
+}
+
 // ---------- modal ----------
 function preencherProcessosSelects() {
     const opcoes = estado.processos.map((p) => `<option value="${p.id}">${escapar(p.nome)}</option>`).join("");
@@ -1488,6 +1773,13 @@ function preencherProcessosSelects() {
     if (!el.fiProcesso.dataset.pronto) {
         el.fiProcesso.innerHTML = `<option value="">sem executor</option>` + opcoes;
         el.fiProcesso.dataset.pronto = "1";
+    }
+    if (el.pdProcesso) {
+        const vinculado = el.pdProcesso.value;
+        el.pdProcesso.innerHTML = `<option value="">Nenhuma</option>` + opcoes;
+        if (vinculado && estado.processos.some((p) => String(p.id) === String(vinculado))) {
+            el.pdProcesso.value = vinculado;
+        }
     }
 
     if (el.trMaquina) {
@@ -1593,6 +1885,78 @@ if (el.calNext) el.calNext.addEventListener("click", () => mudarMes(1));
 if (el.calHoje) el.calHoje.addEventListener("click", irParaHoje);
 if (el.formVariaveis) el.formVariaveis.addEventListener("submit", salvarVariaveis);
 if (el.variaveisCancelar) el.variaveisCancelar.addEventListener("click", () => el.dialogVariaveis.close());
+if (el.btnNovoFluxo) el.btnNovoFluxo.addEventListener("click", novoFluxo);
+if (el.formFluxo) el.formFluxo.addEventListener("submit", salvarFluxo);
+if (el.pdCancelar) el.pdCancelar.addEventListener("click", cancelarFluxo);
+if (el.pdGerarTexto) {
+    el.pdGerarTexto.addEventListener("click", () => {
+        const passos = passosDoTexto(el.pdPassosTexto.value);
+        if (!passos.length) {
+            el.pdErro.textContent = "Escreva uma etapa por linha antes de gerar.";
+            return;
+        }
+        el.pdErro.textContent = "";
+        renderPassosEditaveis(passos);
+    });
+}
+document.querySelectorAll("button[data-pd-tipo]").forEach((botao) =>
+    botao.addEventListener("click", () => {
+        const passos = coletarPassos();
+        const tipo = botao.dataset.pdTipo;
+        passos.push({ nome: "Nova etapa", tipo, detalhe: "", sim: tipo === "decisao" ? "Sim" : "", nao: tipo === "decisao" ? "Não" : "" });
+        renderPassosEditaveis(passos);
+    }));
+if (el.pdPassos) {
+    el.pdPassos.addEventListener("click", (ev) => {
+        const botao = ev.target.closest("button[data-pd-acao]");
+        if (!botao) return;
+        const i = Number(botao.closest(".pd-passo").dataset.i);
+        const passos = coletarPassos();
+        if (botao.dataset.pdAcao === "remover") passos.splice(i, 1);
+        if (botao.dataset.pdAcao === "subir" && i > 0) [passos[i - 1], passos[i]] = [passos[i], passos[i - 1]];
+        if (botao.dataset.pdAcao === "descer" && i < passos.length - 1) [passos[i + 1], passos[i]] = [passos[i], passos[i + 1]];
+        renderPassosEditaveis(passos);
+    });
+    el.pdPassos.addEventListener("change", (ev) => {
+        if (!ev.target.matches(".pd-tipo")) return;
+        const i = Number(ev.target.closest(".pd-passo").dataset.i);
+        const passos = coletarPassos();
+        if (passos[i].tipo === "decisao") {
+            passos[i].sim = passos[i].sim || "Sim";
+            passos[i].nao = passos[i].nao || "Não";
+        }
+        renderPassosEditaveis(passos);
+    });
+    el.pdPassos.addEventListener("input", (ev) => {
+        if (!ev.target.matches(".pd-nome, .pd-detalhe, .pd-sim, .pd-nao")) return;
+        const i = Number(ev.target.closest(".pd-passo").dataset.i);
+        const campo = ev.target.classList[0].replace("pd-", "");
+        const valor = ev.target.value;
+        if (estado.fluxoRascunho[i]) estado.fluxoRascunho[i][campo] = valor;
+        renderCanvas();
+    });
+}
+if (el.pdCanvas) el.pdCanvas.addEventListener("pointerdown", iniciarArraste);
+if (el.fluxos) {
+    el.fluxos.addEventListener("click", (ev) => {
+        const botao = ev.target.closest("button[data-fluxo-acao]");
+        if (!botao) return;
+        const acoes = { editar: editarFluxo, pdd: abrirPdd, remover: removerFluxo };
+        const acao = acoes[botao.dataset.fluxoAcao];
+        if (acao) acao(botao.dataset.id);
+    });
+}
+if (el.pddFechar) el.pddFechar.addEventListener("click", () => el.dialogPdd.close());
+if (el.pddImprimir) el.pddImprimir.addEventListener("click", () => {
+    if (estado.pddAtual) window.open(`/api/orq/fluxos/${estado.pddAtual}/pdd?formato=html`, "_blank");
+});
+if (el.pddBaixar) el.pddBaixar.addEventListener("click", () => {
+    if (!estado.pddAtual) return;
+    const link = document.createElement("a");
+    link.href = `/api/orq/fluxos/${estado.pddAtual}/pdd?formato=md`;
+    link.download = `PDD-${estado.pddAtual}.md`;
+    link.click();
+});
 atualizarTipoTrigger();
 
 // ---------- tema claro/escuro ----------

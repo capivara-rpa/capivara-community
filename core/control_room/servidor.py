@@ -147,6 +147,8 @@ def _permissao_da_rota(metodo: str, rota: str) -> str | None:
         return "filas.gerir"
     if rota.startswith("/api/orq/triggers"):
         return "triggers.gerir"
+    if rota.startswith("/api/orq/fluxos"):
+        return "pdd.gerir"
     if rota.startswith("/api/orq/jobs"):
         return "jobs.disparar"
     return None
@@ -163,6 +165,19 @@ class ManipuladorControlRoom(ManipuladorPainel):
     # ------------------------------------------------------------------
     # Sessão / autorização
     # ------------------------------------------------------------------
+    def _responder(self, status: int, corpo: bytes, content_type: str) -> None:
+        """Resposta HTTP com cabeçalhos extras (ex.: download do PDD)."""
+        extras = list(getattr(self, "_cabecalhos_extra", []) or [])
+        self._cabecalhos_extra = []
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
+        for nome, valor in extras:
+            self.send_header(nome, valor)
+        self.send_header("Content-Length", str(len(corpo)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(corpo)
+
     def _sessao_atual(self) -> dict | None:
         return servico.validar_sessao(_sessao_do_pedido(self.headers))
 
@@ -304,6 +319,10 @@ class ManipuladorControlRoom(ManipuladorPainel):
                 self._json(404, {"erro": "Processo não encontrado."})
             else:
                 self._json(200, {"processo_id": int(pedaco), "variaveis": variaveis})
+        elif rota == "/api/orq/fluxos":
+            self._json(200, {"fluxos": servico.listar_fluxos()})
+        elif rota.startswith("/api/orq/fluxos/"):
+            self._obter_fluxo(rota, query)
         elif rota == "/api/orq/assets":
             self._json(200, {"assets": servico.listar_assets(mascarar=True)})
         elif rota.startswith("/api/orq/assets/") and rota.endswith("/versoes"):
@@ -412,6 +431,40 @@ class ManipuladorControlRoom(ManipuladorPainel):
             self._json(404, {"erro": "Job não encontrado."})
         else:
             self._json(200, {"job": job})
+
+    def _obter_fluxo(self, rota: str, query: dict[str, list[str]] | None = None) -> None:
+        partes = rota.strip("/").split("/")  # api / orq / fluxos / <id> [/ pdd]
+        if len(partes) < 4 or not partes[3].isdigit():
+            self._json(400, {"erro": "Id de fluxo inválido."})
+            return
+        fluxo_id = int(partes[3])
+        if len(partes) == 5 and partes[4] == "pdd":
+            documento = servico.documento_pdd(fluxo_id)
+            if documento is None:
+                self._json(404, {"erro": "Fluxo não encontrado."})
+                return
+            formato = (self._primeiro(query, "formato") or "md").lower()
+            if formato == "html":
+                from core.control_room.pdd import gerar_html
+
+                self._responder(200, gerar_html(documento["fluxo"]).encode("utf-8"), "text/html; charset=utf-8")
+                return
+            if formato not in ("md", "markdown", "texto"):
+                self._json(400, {"erro": "Formato inválido (use 'md' ou 'html')."})
+                return
+            nome = str(documento["fluxo"]["nome"]).encode("ascii", "ignore").decode("ascii")
+            nome = "".join(c if c.isalnum() or c in "-_" else "-" for c in nome).strip("-") or "processo"
+            self._cabecalhos_extra = getattr(self, "_cabecalhos_extra", [])
+            self._cabecalhos_extra.append(
+                ("Content-Disposition", f'attachment; filename="PDD-{nome}.md"')
+            )
+            self._responder(200, documento["markdown"].encode("utf-8"), "text/markdown; charset=utf-8")
+            return
+        documento = servico.documento_pdd(fluxo_id)
+        if documento is None:
+            self._json(404, {"erro": "Fluxo não encontrado."})
+        else:
+            self._json(200, documento)
 
     # ------------------------------------------------------------------
     # POST
@@ -588,6 +641,26 @@ class ManipuladorControlRoom(ManipuladorPainel):
         # /api/orq/automacoes/git/atualizar  (clona de novo e substitui)
         elif partes == ["api", "orq", "automacoes", "git", "atualizar"]:
             self._instalar_pacote_git(corpo, atualizar=True)
+        # /api/orq/fluxos  e  /api/orq/fluxos/<id>  e  /api/orq/fluxos/<id>/remover
+        elif partes == ["api", "orq", "fluxos"]:
+            self._salvar_fluxo(corpo, fluxo_id=None)
+        elif len(partes) == 4 and partes[:3] == ["api", "orq", "fluxos"]:
+            if not partes[3].isdigit():
+                self._json(400, {"erro": "Id de fluxo inválido."})
+                return
+            self._salvar_fluxo(corpo, fluxo_id=int(partes[3]))
+        elif (
+            len(partes) == 5
+            and partes[:3] == ["api", "orq", "fluxos"]
+            and partes[4] == "remover"
+        ):
+            if not partes[3].isdigit():
+                self._json(400, {"erro": "Id de fluxo inválido."})
+                return
+            if not servico.apagar_fluxo(int(partes[3]), ator=corpo.get("ator")):
+                self._json(404, {"erro": "Fluxo não encontrado."})
+                return
+            self._json(200, {"ok": True})
         # /api/orq/assets  e  /api/orq/assets/<id>/remover
         elif partes == ["api", "orq", "assets"]:
             self._criar_asset(corpo)
@@ -953,6 +1026,40 @@ class ManipuladorControlRoom(ManipuladorPainel):
             ator=corpo.get("ator"),
         )
         self._json(201, {"permissao": permissao})
+
+    def _salvar_fluxo(self, corpo: dict, fluxo_id: int | None = None) -> None:
+        from core.control_room.pdd import passos_de_texto
+
+        passos = corpo.get("passos")
+        if passos is None:
+            passos = passos_de_texto(corpo.get("texto_passos") or "")
+        try:
+            if fluxo_id is None:
+                fluxo = servico.criar_fluxo(
+                    corpo.get("nome"),
+                    execucoes_por_dia=corpo.get("execucoes_por_dia", 1),
+                    passos=passos,
+                    descricao=corpo.get("descricao"),
+                    processo_id=corpo.get("processo_id"),
+                    ator=corpo.get("ator"),
+                )
+            else:
+                fluxo = servico.atualizar_fluxo(
+                    fluxo_id,
+                    nome=corpo.get("nome"),
+                    execucoes_por_dia=corpo.get("execucoes_por_dia", 1),
+                    passos=passos,
+                    descricao=corpo.get("descricao"),
+                    processo_id=corpo.get("processo_id"),
+                    ator=corpo.get("ator"),
+                )
+        except ValueError as erro:
+            self._json(400, {"erro": str(erro)})
+            return
+        if fluxo is None:
+            self._json(404, {"erro": "Fluxo não encontrado."})
+            return
+        self._json(200 if fluxo_id else 201, {"fluxo": fluxo})
 
     def _salvar_variaveis_processo(self, pedaco_id: str, corpo: dict) -> None:
         if not pedaco_id.isdigit():

@@ -162,6 +162,19 @@ CREATE TABLE IF NOT EXISTS triggers (
     FOREIGN KEY (maquina_id)  REFERENCES maquinas (id)
 );
 
+CREATE TABLE IF NOT EXISTS fluxos_pdd (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome              TEXT    NOT NULL UNIQUE,
+    execucoes_por_dia INTEGER NOT NULL DEFAULT 1,
+    descricao         TEXT,
+    passos            TEXT    NOT NULL DEFAULT '[]',
+    processo_id       INTEGER,
+    versao            INTEGER NOT NULL DEFAULT 1,
+    criado_em         TEXT    NOT NULL,
+    atualizado_em     TEXT,
+    FOREIGN KEY (processo_id) REFERENCES processos (id) ON DELETE SET NULL
+);
+
 CREATE TABLE IF NOT EXISTS assets (
     id        INTEGER PRIMARY KEY AUTOINCREMENT,
     nome      TEXT    NOT NULL UNIQUE,
@@ -462,6 +475,28 @@ def obter_processo_por_nome(nome: str) -> dict[str, Any] | None:
 
 
 # ----------------------------------------------------------------------
+# Fluxos / PDD
+# ----------------------------------------------------------------------
+_SQL_FLUXO_DETALHE = """
+SELECT f.*,
+       p.nome AS processo_nome,
+       p.fluxo AS fluxo
+  FROM fluxos_pdd f
+  LEFT JOIN processos p ON p.id = f.processo_id
+"""
+
+
+def listar_fluxos_pdd() -> list[dict[str, Any]]:
+    with conectar() as conexao:
+        return _linhas(conexao, _SQL_FLUXO_DETALHE + " ORDER BY f.nome")
+
+
+def obter_fluxo_pdd(fluxo_id: int) -> dict[str, Any] | None:
+    with conectar() as conexao:
+        return _linha(conexao, _SQL_FLUXO_DETALHE + " WHERE f.id = ?", (fluxo_id,))
+
+
+# ----------------------------------------------------------------------
 # Jobs
 # ----------------------------------------------------------------------
 def obter_job(job_id: int) -> dict[str, Any] | None:
@@ -494,6 +529,7 @@ SELECT j.*,
 def apagar_tudo() -> None:
     """Remove máquinas, processos, jobs, triggers, assets, filas e identidade."""
     with conectar() as conexao:
+        conexao.execute("DELETE FROM fluxos_pdd")
         conexao.execute("DELETE FROM itens_fila")
         conexao.execute("DELETE FROM fila_processos")
         conexao.execute("DELETE FROM filas")

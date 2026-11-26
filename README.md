@@ -408,8 +408,9 @@ No painel: clique em **Executar** num processo (ou “+ Novo job”), escolha a
 máquina (ou “qualquer”), e o agente que estiver livre pega o job. O resultado e
 o passo a passo aparecem na hora — cada job tem link para o seu **trace**.
 
-O painel tem as abas: **Jobs** (Lagoa), **Dispositivos**, **Agendamentos**,
-**Automações**, **Filas**, **Assets** e **Acessos** (usuários, papéis e permissões).
+O painel tem as abas: **Jobs** (Lagoa), **Dispositivos**, **Fluxos & PDD**,
+**Agendamentos**, **Automações**, **Filas**, **Assets** e **Acessos** (usuários,
+papéis e permissões).
 
 - **Login / RBAC (multiempresa)** — por padrão a Lagoa é aberta
   (`LAGOA_AUTH=false`, ideal para dev/LAN). Ligue `LAGOA_AUTH=true`
@@ -444,6 +445,13 @@ O painel tem as abas: **Jobs** (Lagoa), **Dispositivos**, **Agendamentos**,
   **feriados nacionais** (cálculo próprio, sem dependência: `core/control_room/feriados.py`).
   Na aba dá para **pausar/ativar**, **executar na hora** e remover. O servidor
   verifica os vencidos num *loop* de fundo (`INTERVALO_TRIGGERS` no `.env`, 15s).
+
+- **Fluxos & PDD (documentação do processo)** — na aba **Fluxos & PDD** você
+  informa o nome do processo, **quantas vezes o robô roda por dia** e descreve o
+  passo a passo. Linhas começando com `Se`/`Senão`/`Erro` viram **decisões** e
+  **exceções** no diagrama (arrastável). Cada alteração gera uma nova versão do
+  **PDD** (Documento de Definição de Processo) em Markdown/HTML, com Mermaid,
+  passos, exceções e critérios de aceite. A permissão é `pdd.gerir`.
 
 - **Automações (pacotes de robô)** — publica um robô pela UI de duas formas:
   - **.zip** — envie um **.zip** com o manifesto `rpa.json` na aba **Automações**

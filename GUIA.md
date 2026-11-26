@@ -135,8 +135,9 @@ Abra no navegador:
 - **Lagoa** → http://localhost:8765
 - **Monitor (trace)** → http://localhost:8765/monitor/
 
-O menu lateral tem: **Lagoa** (jobs), **Dispositivos**, **Filas**,
-**Credenciais**, **Acessos** e **Sistema → Monitor**.
+O menu lateral tem: **Lagoa** (jobs), **Dispositivos**, **Fluxos & PDD**,
+**Filas**, **Credenciais**, **Acessos** e **Sistema → Monitor**. As abas
+**Agendamentos** e **Automações** ficam no mesmo menu.
 Use o botão do rodapé da barra lateral para alternar **tema claro/escuro**.
 
 > A Lagoa e o Monitor usam **SQLite + biblioteca padrão**. Os bancos ficam
@@ -257,6 +258,14 @@ Se um token vazar, revogue: o antigo deixa de funcionar imediatamente.
 5. **Cancelar**: jobs `pendente` ou `em_execucao` podem ser cancelados pela linha
    ou pelo diálogo de detalhes. Se o fluxo quiser cooperar, ele pode checar
    `agente.cancelado()` e encerrar sozinho.
+
+**Fluxos & PDD** (aba Fluxos & PDD): documente o processo antes de automatizar.
+Clique em **+ Novo fluxo**, informe o **nome**, **quantas vezes o robô roda por
+dia** e descreva o passo a passo (uma linha por etapa). O botão **Gerar passos no
+diagrama** transforma linhas que começam com `Se`, `Senão` ou `Erro` em decisões
+e exceções; os nós podem ser arrastados. **Salvar fluxo** cria uma versão do
+**PDD**; o botão **Ver PDD** abre o Markdown e permite imprimir/baixar em HTML ou
+`.md`. O diagrama usa Mermaid e a permissão RBAC é `pdd.gerir`.
 
 **Agendamentos** (aba Agendamentos): monte o agendamento escolhendo o **robô**,
 **onde** rodar (máquina e/ou tag), a **recorrência** (intervalo, diário ou **cron**,

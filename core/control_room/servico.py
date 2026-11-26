@@ -13,7 +13,7 @@ from typing import Any
 
 from loguru import logger
 
-from core.control_room import cofre, feriados as feriados_br, seguranca
+from core.control_room import cofre, feriados as feriados_br, pdd, seguranca
 from core.control_room.banco import (
     ITEM_ABANDONADO,
     ITEM_CONCLUIDO,
@@ -44,6 +44,7 @@ from core.control_room.banco import (
     listar_auditoria as _listar_auditoria_brutas,
     listar_empresas as _listar_empresas_brutas,
     listar_filas as _listar_filas_brutas,
+    listar_fluxos_pdd as _listar_fluxos_pdd_brutos,
     listar_itens as _listar_itens_brutos,
     listar_jobs,
     listar_maquinas as _listar_maquinas_brutas,
@@ -64,6 +65,7 @@ from core.control_room.banco import (
     obter_empresa_por_nome,
     obter_fila,
     obter_fila_por_nome,
+    obter_fluxo_pdd as _obter_fluxo_pdd_bruto,
     obter_item,
     obter_job,
     obter_maquina_por_nome,
@@ -953,6 +955,168 @@ def verificar_triggers() -> int:
 
 
 # ----------------------------------------------------------------------
+# Fluxos e documentação de processos (PDD)
+# ----------------------------------------------------------------------
+def _fluxo_publico(linha: dict[str, Any] | None) -> dict[str, Any] | None:
+    if linha is None:
+        return None
+    fluxo = dict(linha)
+    fluxo["passos"] = pdd.carregar_passos(fluxo.get("passos"))
+    fluxo["qtd_passos"] = len(fluxo["passos"])
+    return fluxo
+
+
+def listar_fluxos() -> list[dict[str, Any]]:
+    return [_fluxo_publico(linha) for linha in _listar_fluxos_pdd_brutos()]
+
+
+def obter_fluxo(fluxo_id: int) -> dict[str, Any] | None:
+    return _fluxo_publico(_obter_fluxo_pdd_bruto(fluxo_id))
+
+
+def _dados_fluxo(
+    nome: Any,
+    execucoes_por_dia: Any,
+    passos: Any,
+    descricao: Any,
+    processo_id: Any,
+    atual: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    nome_limpo = str(nome or "").strip()
+    if not nome_limpo:
+        raise ValueError("Informe o nome do processo.")
+    if len(nome_limpo) > 200:
+        raise ValueError("O nome do processo deve ter até 200 caracteres.")
+    for fluxo in listar_fluxos():
+        if fluxo["nome"].strip().casefold() == nome_limpo.casefold() and (
+            atual is None or fluxo["id"] != atual["id"]
+        ):
+            raise ValueError("Já existe um fluxo com esse nome.")
+
+    try:
+        quantidade = int(execucoes_por_dia)
+    except (TypeError, ValueError) as erro:
+        raise ValueError("Informe quantas vezes o robô roda por dia.") from erro
+    if not 1 <= quantidade <= 100000:
+        raise ValueError("Execuções por dia deve estar entre 1 e 100000.")
+
+    passos_validos = pdd.normalizar_passos(passos)
+    if not passos_validos:
+        raise ValueError("Descreva ao menos um passo do processo.")
+
+    vinculo = None
+    if processo_id not in (None, ""):
+        try:
+            vinculo = int(processo_id)
+        except (TypeError, ValueError) as erro:
+            raise ValueError("Automação vinculada inválida.") from erro
+        if obter_processo(vinculo) is None:
+            raise ValueError("Automação vinculada não encontrada.")
+
+    return {
+        "nome": nome_limpo,
+        "execucoes_por_dia": quantidade,
+        "descricao": str(descricao or "").strip()[:4000] or None,
+        "passos": pdd.serializar_passos(passos_validos),
+        "processo_id": vinculo,
+    }
+
+
+def criar_fluxo(
+    nome: str,
+    execucoes_por_dia: Any = 1,
+    passos: Any = None,
+    descricao: str | None = None,
+    processo_id: Any = None,
+    ator: str | None = None,
+) -> dict[str, Any]:
+    """Cria um fluxo e devolve o documento já estruturado."""
+    dados = _dados_fluxo(nome, execucoes_por_dia, passos, descricao, processo_id)
+    agora = agora_iso()
+    with conectar() as conexao:
+        cursor = conexao.execute(
+            """
+            INSERT INTO fluxos_pdd
+                (nome, execucoes_por_dia, descricao, passos, processo_id, versao, criado_em, atualizado_em)
+            VALUES (?, ?, ?, ?, ?, 1, ?, ?)
+            """,
+            (
+                dados["nome"], dados["execucoes_por_dia"], dados["descricao"],
+                dados["passos"], dados["processo_id"], agora, agora,
+            ),
+        )
+        fluxo_id = cursor.lastrowid
+    registrar_auditoria(
+        "criar", recurso=f"pdd:{dados['nome']}", ator=ator,
+        detalhe=f"{len(pdd.carregar_passos(dados['passos']))} passos",
+    )
+    return obter_fluxo(fluxo_id)
+
+
+def atualizar_fluxo(
+    fluxo_id: int,
+    nome: str | None = None,
+    execucoes_por_dia: Any = 1,
+    passos: Any = None,
+    descricao: str | None = None,
+    processo_id: Any = None,
+    ator: str | None = None,
+) -> dict[str, Any] | None:
+    """Atualiza o fluxo e incrementa a versão do PDD."""
+    atual = obter_fluxo(fluxo_id)
+    if atual is None:
+        return None
+    dados = _dados_fluxo(
+        nome if nome is not None else atual["nome"],
+        execucoes_por_dia,
+        passos if passos is not None else atual["passos"],
+        descricao,
+        processo_id,
+        atual=atual,
+    )
+    nova_versao = int(atual.get("versao") or 1) + 1
+    with conectar() as conexao:
+        conexao.execute(
+            """
+            UPDATE fluxos_pdd
+               SET nome = ?, execucoes_por_dia = ?, descricao = ?, passos = ?,
+                   processo_id = ?, versao = ?, atualizado_em = ?
+             WHERE id = ?
+            """,
+            (
+                dados["nome"], dados["execucoes_por_dia"], dados["descricao"],
+                dados["passos"], dados["processo_id"], nova_versao, agora_iso(), fluxo_id,
+            ),
+        )
+    registrar_auditoria(
+        "editar", recurso=f"pdd:{dados['nome']}", ator=ator, detalhe=f"versão {nova_versao}"
+    )
+    return obter_fluxo(fluxo_id)
+
+
+def apagar_fluxo(fluxo_id: int, ator: str | None = None) -> bool:
+    fluxo = obter_fluxo(fluxo_id)
+    if fluxo is None:
+        return False
+    with conectar() as conexao:
+        cursor = conexao.execute("DELETE FROM fluxos_pdd WHERE id = ?", (fluxo_id,))
+    registrar_auditoria("apagar", recurso=f"pdd:{fluxo['nome']}", ator=ator)
+    return cursor.rowcount > 0
+
+
+def documento_pdd(fluxo_id: int) -> dict[str, Any] | None:
+    """Fluxo + Markdown + Mermaid para download/prévia do PDD."""
+    fluxo = obter_fluxo(fluxo_id)
+    if fluxo is None:
+        return None
+    return {
+        "fluxo": fluxo,
+        "markdown": pdd.gerar_markdown(fluxo),
+        "mermaid": pdd.gerar_mermaid(fluxo),
+    }
+
+
+# ----------------------------------------------------------------------
 # Assets (credenciais / variáveis centralizadas) — v2
 # ----------------------------------------------------------------------
 ASSET_SEGREDO = "segredo"
@@ -1701,6 +1865,7 @@ PERMISSOES_PADRAO: dict[str, str] = {
     "jobs.cancelar": "Cancelar jobs",
     "processos.gerir": "Gerenciar o catálogo de processos",
     "triggers.gerir": "Gerenciar agendamentos",
+    "pdd.gerir": "Criar e editar fluxos e documentos de processo",
     "assets.gerir": "Gerenciar assets e permissões",
     "assets.ler": "Ler credenciais/segredos",
     "filas.gerir": "Gerenciar filas e itens",
@@ -2122,6 +2287,7 @@ def montar_painel() -> dict[str, Any]:
         "processos": listar_processos(),
         "jobs": listar_jobs(limite=100),
         "triggers": listar_triggers(),
+        "fluxos": listar_fluxos(),
         "assets": listar_assets(mascarar=True),
         "asset_info": {"tipos": list(ASSET_TIPOS)},
         "auditoria": listar_auditoria(limite=50),
@@ -2186,8 +2352,11 @@ def revisao() -> str:
               (SELECT COUNT(*) FROM auditoria) AS nau,
               (SELECT COUNT(*) FROM filas) AS nf,
               (SELECT COUNT(*) FROM fila_processos) AS nfp,
-              (SELECT COUNT(*) FROM triggers) AS nt,
-              (SELECT COALESCE(GROUP_CONCAT(ativo || ':' || nome, '|'), '')
+               (SELECT COUNT(*) FROM triggers) AS nt,
+               (SELECT COUNT(*) FROM fluxos_pdd) AS nflux,
+               (SELECT COALESCE(GROUP_CONCAT(id || ':' || versao, '|'), '')
+                  FROM (SELECT id, versao FROM fluxos_pdd ORDER BY id)) AS fv,
+               (SELECT COALESCE(GROUP_CONCAT(ativo || ':' || nome, '|'), '')
                  FROM (SELECT ativo, nome FROM filas ORDER BY id)) AS fa,
               (SELECT COUNT(*) FROM usuarios) AS nu,
               (SELECT COUNT(*) FROM papeis) AS np,
@@ -2218,6 +2387,12 @@ __all__ = [
     "concluir_job",
     "criar_trigger",
     "listar_triggers",
+    "listar_fluxos",
+    "obter_fluxo",
+    "criar_fluxo",
+    "atualizar_fluxo",
+    "apagar_fluxo",
+    "documento_pdd",
     "apagar_trigger",
     "criar_asset",
     "listar_assets",

@@ -49,6 +49,12 @@
                             <span class="nav-texto">Automações</span>
                         </button>
                     </li>
+                    <li class="nav-item" data-secao="bpmn">
+                        <button type="button" class="nav-link" data-secao="bpmn">
+                            <span class="nav-icon">⎇</span>
+                            <span class="nav-texto">Fluxos &amp; PDD</span>
+                        </button>
+                    </li>
                     <li class="nav-item" data-secao="filas">
                         <button type="button" class="nav-link" data-secao="filas">
                             <span class="nav-icon">☰</span>
@@ -306,6 +312,65 @@
                                 </div>
                             </div>
 
+                            <div class="painel-aba oculto" id="aba-bpmn">
+                                <div class="barra-acoes">
+                                    <button type="button" class="botao-primario" id="btn-novo-fluxo">+ Novo fluxo</button>
+                                    <span class="dica">Desenhe o fluxo do robô e gere o PDD (documento de definição de processo).</span>
+                                </div>
+
+                                <form class="form-agendamento oculto" id="form-fluxo">
+                                    <div class="campo">
+                                        <label for="pd-nome">Nome do processo</label>
+                                        <input type="text" id="pd-nome" placeholder="ex.: Conciliação de boletos" required style="min-width:260px">
+                                    </div>
+                                    <div class="campo">
+                                        <label for="pd-execucoes">Quantas vezes o robô roda por dia?</label>
+                                        <input type="number" id="pd-execucoes" min="1" max="100000" value="1" required style="width:150px">
+                                    </div>
+                                    <div class="campo">
+                                        <label for="pd-processo">Automação vinculada (opcional)</label>
+                                        <select id="pd-processo" style="min-width:220px"><option value="">Nenhuma</option></select>
+                                    </div>
+                                    <div class="campo campo-largo">
+                                        <label for="pd-descricao">Objetivo / visão geral</label>
+                                        <textarea id="pd-descricao" rows="2" placeholder="O que o processo resolve e qual o resultado esperado."></textarea>
+                                    </div>
+                                    <div class="campo campo-largo">
+                                        <label for="pd-passos-texto">Descreva o processo passo a passo (uma etapa por linha)</label>
+                                        <textarea id="pd-passos-texto" rows="4" spellcheck="false" placeholder="Abra o portal da empresa&#10;Se o cliente estiver inadimplente&#10;Senão registre o pagamento&#10;Erro ao consultar API: registrar ocorrência"></textarea>
+                                        <button type="button" class="botao-secundario" id="pd-gerar-texto">Gerar passos no diagrama</button>
+                                    </div>
+                                    <div class="campo campo-largo">
+                                        <label>Passos do fluxo</label>
+                                        <div class="pd-passos" id="pd-passos"></div>
+                                        <div class="pd-adicionar">
+                                            <button type="button" class="botao-secundario" data-pd-tipo="acao">+ Ação</button>
+                                            <button type="button" class="botao-secundario" data-pd-tipo="decisao">+ Decisão</button>
+                                            <button type="button" class="botao-secundario" data-pd-tipo="excecao">+ Exceção</button>
+                                        </div>
+                                    </div>
+                                    <div class="campo campo-largo">
+                                        <label>Diagrama (arraste os nós para organizar)</label>
+                                        <div class="pd-canvas" id="pd-canvas"></div>
+                                    </div>
+                                    <div class="campo campo-botao">
+                                        <button type="submit" class="botao-primario">Salvar fluxo</button>
+                                        <button type="button" class="botao-secundario" id="pd-cancelar">Cancelar</button>
+                                        <span class="erro-login" id="pd-erro"></span>
+                                    </div>
+                                </form>
+
+                                <div class="tabela-envolucro">
+                                    <table class="tabela">
+                                        <thead>
+                                            <tr><th>Processo</th><th>Exec./dia</th><th>Passos</th>
+                                                <th>Versão</th><th>Atualizado</th><th>Ações</th></tr>
+                                        </thead>
+                                        <tbody id="corpo-fluxos"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
                             <div class="painel-aba oculto" id="aba-monitor">
                                 <iframe id="frame-monitor" class="frame-monitor" title="Monitor de execuções"
                                     loading="lazy"></iframe>
@@ -494,6 +559,20 @@
             <div class="modal-acoes" id="job-acoes"></div>
             <h4 class="subtitulo">Trace (passo a passo)</h4>
             <div id="job-trace" class="trace"><p class="vazio">Carregando…</p></div>
+        </div>
+    </dialog>
+
+    <dialog id="dialog-pdd" class="modal modal-larga">
+        <div class="job-detalhe">
+            <div class="modal-topo">
+                <h3 id="pdd-titulo">PDD</h3>
+                <button type="button" class="botao-secundario" id="pdd-fechar">Fechar</button>
+            </div>
+            <div class="modal-acoes">
+                <button type="button" class="botao-primario" id="pdd-imprimir">Abrir para imprimir / PDF</button>
+                <button type="button" class="botao-secundario" id="pdd-baixar">Baixar .md</button>
+            </div>
+            <pre class="pd-pdd-texto" id="pdd-texto"></pre>
         </div>
     </dialog>
 

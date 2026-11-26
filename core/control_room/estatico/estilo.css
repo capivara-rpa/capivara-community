@@ -1619,6 +1619,117 @@ button.nav-link {
 .cal-evento:hover { filter: brightness(0.96); }
 .cal-mais { font-size: 10px; color: var(--text-secondary); padding-left: 2px; }
 
+/* ===== Fluxos e PDD ===== */
+.dica { font-size: 12px; color: var(--text-secondary); font-family: 'Inter', sans-serif; }
+.form-agendamento .campo textarea {
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    font-size: 12.5px;
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    line-height: 1.5;
+    min-width: 100%;
+    resize: vertical;
+}
+.form-agendamento .campo textarea:focus { outline: none; border-color: var(--primary); }
+.pd-passos { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.pd-passo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 6px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    background: var(--bg);
+}
+.pd-passo select,
+.pd-passo input {
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    padding: 6px 8px;
+    font-size: 12.5px;
+    font-family: 'Inter', sans-serif;
+}
+.pd-passo select:focus,
+.pd-passo input:focus { outline: none; border-color: var(--primary); }
+.pd-passo .pd-nome { flex: 1 1 200px; min-width: 140px; }
+.pd-passo .pd-detalhe,
+.pd-passo .pd-sim,
+.pd-passo .pd-nao { flex: 1 1 140px; min-width: 110px; }
+.pd-adicionar { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.pd-canvas {
+    position: relative;
+    width: 100%;
+    min-height: 300px;
+    overflow: auto;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    background-color: var(--bg);
+    background-image: radial-gradient(circle, rgba(127, 127, 127, .22) 1px, transparent 1px);
+    background-size: 18px 18px;
+}
+.pd-linhas { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; }
+.pd-linhas path { fill: none; stroke: var(--text-secondary); stroke-width: 1.8; opacity: .7; }
+.pd-linhas text { fill: var(--text-secondary); font-family: 'Inter', sans-serif; font-size: 10px; }
+.pd-no {
+    position: absolute;
+    width: 190px;
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--cor);
+    border-left: 4px solid var(--cor);
+    border-radius: 9px;
+    background: var(--card-bg);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, .12);
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+}
+.pd-no:active { cursor: grabbing; }
+.pd-no-icone {
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--cor) 18%, transparent);
+    color: var(--cor);
+    font-weight: 700;
+    font-size: 12px;
+}
+.pd-no-corpo { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pd-no-corpo strong {
+    font-size: 12.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.pd-no-corpo small { font-size: 10px; color: var(--text-secondary); }
+.modal-acoes { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+.pd-pdd-texto {
+    max-height: 60vh;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: var(--bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--text-primary);
+}
+.tabela .vazio { text-align: center; color: var(--text-secondary); padding: 18px; }
+
 /* ===== Variáveis de ambiente ===== */
 .modal textarea {
     width: 100%;
@@ -1647,4 +1758,6 @@ button.nav-link {
     .cal-evento { font-size: 9px; padding: 2px 3px; }
     .calendario { padding: 10px; }
     .calendario-topo h3 { flex-basis: 150px; font-size: 13px; }
+    .pd-no { width: 170px; }
+    .pd-passo .pd-nome { flex-basis: 100%; }
 }
