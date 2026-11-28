@@ -5,23 +5,24 @@
 }
 
 :root {
-  --bg-primary: #1a1a2e;
-  --bg-secondary: #16213e;
-  --bg-tertiary: #0f3460;
-  --text-primary: #e6e6e6;
-  --text-secondary: #a0a0b0;
-  --accent: #e94560;
-  --accent-hover: #ff6b81;
-  --success: #2ecc71;
-  --warning: #f39c12;
-  --border: #2a2a4a;
-  --shadow: rgba(0, 0, 0, 0.3);
+  --bg-primary: #0e1411;
+  --bg-secondary: #152019;
+  --bg-tertiary: #1e3226;
+  --text-primary: #faf6ef;
+  --text-secondary: #a9bbae;
+  --accent: #ffd84d;
+  --accent-hover: #ffe680;
+  --success: #1fa463;
+  --marrom: #9b6b43;
+  --azul: #1f5fd1;
+  --border: #2a4234;
+  --shadow: rgba(0, 0, 0, 0.35);
 }
 
 body {
   width: 360px;
   min-height: 200px;
-  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
 }
@@ -34,31 +35,44 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   margin-bottom: 16px;
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.logo svg {
-  color: var(--accent);
+.logo-img {
+  border-radius: 9px;
+  box-shadow: 0 3px 12px var(--shadow);
 }
 
 .logo h1 {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+
+.subtitulo {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  letter-spacing: 0.2px;
 }
 
 .version {
+  flex-shrink: 0;
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--accent);
   background: var(--bg-secondary);
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: 10px;
+  border: 1px solid var(--border);
 }
 
 .status-bar {
@@ -123,13 +137,13 @@ body {
 
 .btn-start {
   background: var(--accent);
-  color: white;
+  color: var(--bg-primary);
 }
 
 .btn-start:hover:not(:disabled) {
   background: var(--accent-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(233, 69, 96, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 216, 77, 0.25);
 }
 
 .btn-stop {
@@ -205,7 +219,7 @@ body {
 
 .btn-icon:hover {
   color: var(--accent);
-  background: rgba(233, 69, 96, 0.1);
+  background: rgba(255, 216, 77, 0.1);
 }
 
 #elementsUl {
@@ -263,7 +277,7 @@ body {
 
 .btn-export:hover {
   background: var(--bg-tertiary);
-  border-color: var(--accent);
+  border-color: var(--success);
 }
 
 .elements-list::-webkit-scrollbar {
@@ -280,5 +294,5 @@ body {
 }
 
 .elements-list::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  background: var(--marrom);
 }

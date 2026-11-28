@@ -128,3 +128,35 @@ def test_rota_de_fluxos_exige_permissao_pdd_gerir():
     assert servidor._permissao_da_rota("GET", "/api/orq/fluxos") == "pdd.gerir"
     assert servidor._permissao_da_rota("POST", "/api/orq/fluxos/12/remover") == "pdd.gerir"
     assert "pdd.gerir" in servico.PERMISSOES_PADRAO
+
+
+def test_documento_pdd_inclui_tipo_pessoas_e_tempo():
+    fluxo = servico.criar_fluxo(
+        "Triagem",
+        2,
+        _passos(),
+        tipo="Triagem de contas",
+        pessoas=3,
+        tempo="40 min",
+    )
+    assert fluxo["tipo"] == "Triagem de contas"
+    assert fluxo["pessoas"] == 3
+    assert fluxo["tempo"] == "40 min"
+
+    markdown = pdd.gerar_markdown(fluxo)
+    html = pdd.gerar_html(fluxo)
+    for texto in ("| Tipo do processo | Triagem de contas |", "| Pessoas hoje | 3 |", "| Tempo por execução | 40 min |"):
+        assert texto in markdown
+    for texto in ("Tipo do processo", "Pessoas hoje", "Tempo por execução", "40 min"):
+        assert texto in html
+    assert "Automação vinculada" not in markdown
+    assert "Automação vinculada" not in html
+    assert pdd.TIPOS_PASSO["decisao"]["icone"] == "◆"
+
+
+def test_atualizar_fluxo_preserva_metadados_quando_omitidos():
+    fluxo = servico.criar_fluxo("Metadados", 1, _passos(), tipo="Finanças", pessoas=2, tempo="1h")
+    atualizado = servico.atualizar_fluxo(fluxo["id"], execucoes_por_dia=3, passos=_passos())
+    assert atualizado["tipo"] == "Finanças"
+    assert atualizado["pessoas"] == 2
+    assert atualizado["tempo"] == "1h"

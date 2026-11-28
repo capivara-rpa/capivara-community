@@ -167,6 +167,9 @@ CREATE TABLE IF NOT EXISTS fluxos_pdd (
     nome              TEXT    NOT NULL UNIQUE,
     execucoes_por_dia INTEGER NOT NULL DEFAULT 1,
     descricao         TEXT,
+    tipo              TEXT,
+    pessoas           INTEGER NOT NULL DEFAULT 0,
+    tempo             TEXT,
     passos            TEXT    NOT NULL DEFAULT '[]',
     processo_id       INTEGER,
     versao            INTEGER NOT NULL DEFAULT 1,
@@ -333,6 +336,11 @@ CREATE INDEX IF NOT EXISTS idx_auditoria_recurso ON auditoria (recurso);
 _COLUNAS_EXTRA = {
     "jobs": [("requisito_tag", "TEXT"), ("item_id", "INTEGER")],
     "itens_fila": [("prioridade", "INTEGER")],
+    "fluxos_pdd": [
+        ("tipo", "TEXT"),
+        ("pessoas", "INTEGER NOT NULL DEFAULT 0"),
+        ("tempo", "TEXT"),
+    ],
     "maquinas": [("token_hash", "TEXT")],
     "filas": [("ativo", "INTEGER NOT NULL DEFAULT 1"), ("rr", "INTEGER NOT NULL DEFAULT 0")],
     "triggers": [

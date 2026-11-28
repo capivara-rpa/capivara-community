@@ -5,7 +5,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       tabId: sender.tab?.id
     });
     chrome.action.setBadgeBackgroundColor({
-      color: '#e94560',
+      color: '#1fa463',
       tabId: sender.tab?.id
     });
   }

@@ -4,6 +4,7 @@
   let overlay = null;
   let highlightBox = null;
   let listenersAttached = false;
+  let sincronizandoStorage = false;
 
   const ELEMENT_DESCRIPTIONS = {
     'a': 'Link',
@@ -265,7 +266,7 @@
     if (overlay) return;
 
     const host = document.createElement('div');
-    host.id = 'tracktab-overlay-root';
+    host.id = 'capivara-captura-overlay-root';
     host.style.cssText = 'position: fixed; top: 0; left: 0; z-index: 2147483647; pointer-events: none;';
     document.body.appendChild(host);
 
@@ -273,38 +274,38 @@
 
     const style = document.createElement('style');
     style.textContent = `
-      .tracktab-banner {
+      .capivara-captura-banner {
         position: fixed;
         top: 12px;
         left: 50%;
         transform: translateX(-50%);
-        background: linear-gradient(135deg, #e94560, #c23152);
-        color: white;
+        background: linear-gradient(135deg, #1fa463, #157a4b);
+        color: #faf6ef;
         padding: 10px 24px;
         border-radius: 24px;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         font-size: 14px;
         font-weight: 600;
-        box-shadow: 0 4px 20px rgba(233, 69, 96, 0.4);
+        box-shadow: 0 4px 20px rgba(31, 164, 99, 0.4);
         z-index: 2147483647;
         display: flex;
         align-items: center;
         gap: 8px;
         pointer-events: none;
-        animation: tracktab-slide-in 0.3s ease-out;
+        animation: capivara-captura-slide-in 0.3s ease-out;
       }
-      .tracktab-dot {
+      .capivara-captura-dot {
         width: 8px;
         height: 8px;
-        background: white;
+        background: #ffd84d;
         border-radius: 50%;
-        animation: tracktab-blink 1.5s infinite;
+        animation: capivara-captura-blink 1.5s infinite;
       }
-      @keyframes tracktab-slide-in {
+      @keyframes capivara-captura-slide-in {
         from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
         to { opacity: 1; transform: translateX(-50%) translateY(0); }
       }
-      @keyframes tracktab-blink {
+      @keyframes capivara-captura-blink {
         0%, 100% { opacity: 1; }
         50% { opacity: 0.3; }
       }
@@ -312,8 +313,8 @@
     shadow.appendChild(style);
 
     const banner = document.createElement('div');
-    banner.className = 'tracktab-banner';
-    banner.innerHTML = '<span class="tracktab-dot"></span> TrackTab - Modo Gravador';
+    banner.className = 'capivara-captura-banner';
+    banner.innerHTML = '<span class="capivara-captura-dot"></span> Capivara Captura · capturando elementos';
     shadow.appendChild(banner);
 
     highlightBox = document.createElement('div');
@@ -400,19 +401,19 @@
     const shadow = host.attachShadow({ mode: 'open' });
     const style = document.createElement('style');
     style.textContent = `
-      .tracktab-feedback {
+      .capivara-captura-feedback {
         position: fixed;
-        background: #2ecc71;
-        color: white;
+        background: #1fa463;
+        color: #faf6ef;
         padding: 4px 10px;
         border-radius: 4px;
         font-size: 11px;
         font-weight: 600;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-        animation: tracktab-fade 1.5s forwards;
+        animation: capivara-captura-fade 1.5s forwards;
         white-space: nowrap;
       }
-      @keyframes tracktab-fade {
+      @keyframes capivara-captura-fade {
         0% { opacity: 1; transform: translateY(0); }
         100% { opacity: 0; transform: translateY(-20px); }
       }
@@ -420,7 +421,7 @@
     shadow.appendChild(style);
 
     const feedback = document.createElement('div');
-    feedback.className = 'tracktab-feedback';
+    feedback.className = 'capivara-captura-feedback';
     feedback.textContent = 'Capturado!';
     shadow.appendChild(feedback);
 
@@ -437,6 +438,13 @@
     }
   }
 
+  function sincronizarStorage(gravando) {
+    sincronizandoStorage = true;
+    chrome.storage.session.set({ isRecording: gravando }, () => {
+      setTimeout(() => { sincronizandoStorage = false; }, 50);
+    });
+  }
+
   function startRecording() {
     if (isRecording) return;
     isRecording = true;
@@ -448,7 +456,7 @@
       document.addEventListener('keydown', handleKeyDown, true);
       listenersAttached = true;
     }
-    chrome.storage.session.set({ isRecording: true });
+    sincronizarStorage(true);
   }
 
   function stopRecording() {
@@ -462,7 +470,7 @@
       document.removeEventListener('keydown', handleKeyDown, true);
       listenersAttached = false;
     }
-    chrome.storage.session.set({ isRecording: false });
+    sincronizarStorage(false);
   }
 
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -491,6 +499,12 @@
         break;
     }
     return true;
+  });
+
+  chrome.storage.session.onChanged.addListener((changes, area) => {
+    if (area !== 'session' || changes.isRecording === undefined || sincronizandoStorage) return;
+    if (changes.isRecording.newValue && !isRecording) startRecording();
+    if (!changes.isRecording.newValue && isRecording) stopRecording();
   });
 
   chrome.storage.session.get('isRecording', (data) => {

@@ -980,6 +980,9 @@ def _dados_fluxo(
     passos: Any,
     descricao: Any,
     processo_id: Any,
+    tipo: Any = None,
+    pessoas: Any = None,
+    tempo: Any = None,
     atual: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     nome_limpo = str(nome or "").strip()
@@ -1013,10 +1016,29 @@ def _dados_fluxo(
         if obter_processo(vinculo) is None:
             raise ValueError("Automação vinculada não encontrada.")
 
+    tipo_limpo = str(tipo or "").strip()[:120] or None if tipo is not None else (
+        atual or {}
+    ).get("tipo")
+    descricao_limpa = str(descricao or "").strip()[:4000] or None if descricao is not None else (
+        atual or {}
+    ).get("descricao")
+    tempo_limpo = str(tempo or "").strip()[:100] or None if tempo is not None else (atual or {}).get("tempo")
+
+    numero_pessoas = (atual or {}).get("pessoas") or 0 if pessoas is None else pessoas
+    try:
+        numero_pessoas = int(numero_pessoas or 0)
+    except (TypeError, ValueError) as erro:
+        raise ValueError("Informe quantas pessoas fazem o processo hoje.") from erro
+    if not 0 <= numero_pessoas <= 100000:
+        raise ValueError("Pessoas deve estar entre 0 e 100000.")
+
     return {
         "nome": nome_limpo,
         "execucoes_por_dia": quantidade,
-        "descricao": str(descricao or "").strip()[:4000] or None,
+        "descricao": descricao_limpa,
+        "tipo": tipo_limpo,
+        "pessoas": numero_pessoas,
+        "tempo": tempo_limpo,
         "passos": pdd.serializar_passos(passos_validos),
         "processo_id": vinculo,
     }
@@ -1029,20 +1051,28 @@ def criar_fluxo(
     descricao: str | None = None,
     processo_id: Any = None,
     ator: str | None = None,
+    tipo: Any = None,
+    pessoas: Any = None,
+    tempo: Any = None,
 ) -> dict[str, Any]:
     """Cria um fluxo e devolve o documento já estruturado."""
-    dados = _dados_fluxo(nome, execucoes_por_dia, passos, descricao, processo_id)
+    dados = _dados_fluxo(
+        nome, execucoes_por_dia, passos, descricao, processo_id,
+        tipo=tipo, pessoas=pessoas, tempo=tempo,
+    )
     agora = agora_iso()
     with conectar() as conexao:
         cursor = conexao.execute(
             """
             INSERT INTO fluxos_pdd
-                (nome, execucoes_por_dia, descricao, passos, processo_id, versao, criado_em, atualizado_em)
-            VALUES (?, ?, ?, ?, ?, 1, ?, ?)
+                (nome, execucoes_por_dia, descricao, tipo, pessoas, tempo, passos,
+                 processo_id, versao, criado_em, atualizado_em)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
             """,
             (
                 dados["nome"], dados["execucoes_por_dia"], dados["descricao"],
-                dados["passos"], dados["processo_id"], agora, agora,
+                dados["tipo"], dados["pessoas"], dados["tempo"], dados["passos"],
+                dados["processo_id"], agora, agora,
             ),
         )
         fluxo_id = cursor.lastrowid
@@ -1061,6 +1091,9 @@ def atualizar_fluxo(
     descricao: str | None = None,
     processo_id: Any = None,
     ator: str | None = None,
+    tipo: Any = None,
+    pessoas: Any = None,
+    tempo: Any = None,
 ) -> dict[str, Any] | None:
     """Atualiza o fluxo e incrementa a versão do PDD."""
     atual = obter_fluxo(fluxo_id)
@@ -1072,6 +1105,9 @@ def atualizar_fluxo(
         passos if passos is not None else atual["passos"],
         descricao,
         processo_id,
+        tipo=tipo,
+        pessoas=pessoas,
+        tempo=tempo,
         atual=atual,
     )
     nova_versao = int(atual.get("versao") or 1) + 1
@@ -1079,13 +1115,15 @@ def atualizar_fluxo(
         conexao.execute(
             """
             UPDATE fluxos_pdd
-               SET nome = ?, execucoes_por_dia = ?, descricao = ?, passos = ?,
-                   processo_id = ?, versao = ?, atualizado_em = ?
+               SET nome = ?, execucoes_por_dia = ?, descricao = ?, tipo = ?,
+                   pessoas = ?, tempo = ?, passos = ?, processo_id = ?,
+                   versao = ?, atualizado_em = ?
              WHERE id = ?
             """,
             (
                 dados["nome"], dados["execucoes_por_dia"], dados["descricao"],
-                dados["passos"], dados["processo_id"], nova_versao, agora_iso(), fluxo_id,
+                dados["tipo"], dados["pessoas"], dados["tempo"], dados["passos"],
+                dados["processo_id"], nova_versao, agora_iso(), fluxo_id,
             ),
         )
     registrar_auditoria(
@@ -1873,6 +1911,16 @@ PERMISSOES_PADRAO: dict[str, str] = {
     "auditoria.ver": "Consultar/exportar a auditoria",
     "maquinas.gerir": "Gerenciar máquinas e tokens",
     "pacotes.instalar": "Instalar pacotes de robôs",
+    "jobs.ver": "Ver jobs e execuções",
+    "jobs.retry": "Retentar jobs",
+    "processos.ver": "Ver automações cadastradas",
+    "assets.rotacionar": "Rotacionar segredos",
+    "credenciais.ler": "Ler credenciais v2",
+    "credenciais.rotacionar": "Rotacionar credenciais v2",
+    "filas.itens_gerir": "Gerenciar itens das filas",
+    "auditoria.exportar": "Exportar auditoria em CSV",
+    "relatorios.ver": "Ver relatórios e indicadores",
+    "sistema.configurar": "Configurar parâmetros do sistema",
 }
 
 
@@ -2020,6 +2068,60 @@ def listar_usuarios() -> list[dict[str, Any]]:
     return usuarios
 
 
+def definir_acesso_usuario(
+    usuario_id: int,
+    papeis: list[str] | None,
+    admin: bool = False,
+    ativo: bool = True,
+    ator: str | None = None,
+) -> dict[str, Any] | None:
+    """Atualiza perfis, administrador e status de um usuário de uma só vez."""
+    usuario = obter_usuario(usuario_id)
+    if usuario is None:
+        return None
+    nomes = [str(nome).strip() for nome in (papeis or []) if str(nome).strip()]
+    for atual in papeis_do_usuario(usuario_id):
+        remover_papel(usuario_id, atual["nome"])
+    for nome in nomes:
+        atribuir_papel(usuario_id, nome)
+    with conectar() as conexao:
+        conexao.execute(
+            "UPDATE usuarios SET admin = ?, ativo = ? WHERE id = ?",
+            (int(bool(admin)), int(bool(ativo)), usuario_id),
+        )
+    if admin:
+        atribuir_papel(usuario_id, PAPEL_ADMIN)
+    else:
+        remover_papel(usuario_id, PAPEL_ADMIN)
+    registrar_auditoria(
+        "acesso",
+        recurso=f"usuario:{usuario.get('email')}",
+        ator=ator,
+        detalhe=json.dumps({
+            "papeis": nomes, "admin": bool(admin), "ativo": bool(ativo)
+        }, ensure_ascii=False),
+    )
+    logger.info(f"[lagoa] acesso de '{usuario.get('email')}' atualizado")
+    for atualizado in listar_usuarios():
+        if atualizado["id"] == usuario_id:
+            return atualizado
+    return None
+
+
+def apagar_usuario(usuario_id: int, ator: str | None = None) -> bool:
+    """Remove um usuário e seus vínculos/sessões (senha nunca é exposta)."""
+    usuario = obter_usuario(usuario_id)
+    if usuario is None:
+        return False
+    with conectar() as conexao:
+        conexao.execute("DELETE FROM sessoes WHERE usuario_id = ?", (usuario_id,))
+        conexao.execute("DELETE FROM usuario_papeis WHERE usuario_id = ?", (usuario_id,))
+        conexao.execute("DELETE FROM usuarios WHERE id = ?", (usuario_id,))
+    registrar_auditoria("apagar", recurso=f"usuario:{usuario.get('email')}", ator=ator)
+    logger.info(f"[lagoa] usuário '{usuario.get('email')}' removido")
+    return True
+
+
 def atribuir_papel(usuario_id: int, papel: str) -> None:
     """Associa um papel a um usuário (cria o papel se ainda não existir)."""
     if obter_papel_por_nome(papel) is None:
@@ -2133,7 +2235,8 @@ def listar_sessoes() -> list[dict[str, Any]]:
 def garantir_admin_padrao() -> None:
     """Na primeira execução, cria o admin a partir de ``ADMIN_EMAIL``/``ADMIN_SENHA``."""
     garantir_permissoes_padrao()
-    criar_papel(PAPEL_ADMIN, "Acesso total", list(PERMISSOES_PADRAO))
+    criar_papel(PAPEL_ADMIN, "Acesso total")
+    definir_permissoes_papel(PAPEL_ADMIN, list(PERMISSOES_PADRAO))
     if obter_usuario_por_email(ADMIN_EMAIL) is None:
         criar_usuario("Administrador", ADMIN_EMAIL, ADMIN_SENHA, papeis=[PAPEL_ADMIN], admin=True)
         logger.info(f"[lagoa] admin padrão criado ({ADMIN_EMAIL})")

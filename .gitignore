@@ -54,3 +54,9 @@ chromedriver
 # ===== Landing page e artefatos locais de teste =====
 landing/
 /teste_popup.zip
+# ===== Conceitos/imagens geradas localmente =====
+concepts/
+
+# ===== Memória comercial local =====
+AGENTS_COMERCIAL.md
+agents_comercial.md

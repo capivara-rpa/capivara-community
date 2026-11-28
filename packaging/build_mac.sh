@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Gera o pacote macOS "tudo empacotado" (sem exigir Python):
-#   dist/RPA-Brasil/                 ← pasta pronta (binários + TrackTab + instalador)
+#   dist/RPA-Brasil/                 ← pasta pronta (binários + Capivara Captura + instalador)
 #   dist/RPA-Brasil-macos.zip        ← zip para distribuir/release
 #
 # Uso:

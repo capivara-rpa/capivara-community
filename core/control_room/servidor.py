@@ -280,7 +280,10 @@ class ManipuladorControlRoom(ManipuladorPainel):
         if not self._autorizado("GET", rota):
             return
         if rota == "/api/orq/painel":
-            self._json(200, servico.montar_painel())
+            painel = servico.montar_painel()
+            painel["auth"] = LAGOA_AUTH
+            painel["sessao"] = self._sessao_atual()
+            self._json(200, painel)
         elif rota == "/api/orq/calendario":
             agora = datetime.now()
             ano = self._inteiro(self._primeiro(query, "ano")) or agora.year
@@ -511,6 +514,7 @@ class ManipuladorControlRoom(ManipuladorPainel):
         self._json(
             200,
             {
+                "ok": True,
                 "usuario": usuario,
                 "permissoes": servico.permissoes_do_usuario(usuario["id"]),
             },
@@ -561,11 +565,15 @@ class ManipuladorControlRoom(ManipuladorPainel):
         except ValueError as erro:
             self._json(400, {"erro": str(erro)})
         except Exception as erro:  # nunca derrubar a conexão
+            detalhe = str(erro).strip()
             logger.warning(f"[lagoa] falha ao instalar robô do Git: {erro!r}")
             self._json(
                 400,
-                {"erro": "Não foi possível instalar o robô do repositório. "
-                         "Confira se a URL é pública e se contém um rpa.json."},
+                {
+                    "erro": "Não foi possível instalar o robô do repositório. "
+                            "Confira se a URL é pública e se contém um rpa.json.",
+                    "detalhe": detalhe[:500] if detalhe else erro.__class__.__name__,
+                },
             )
 
     def _ler_corpo(self) -> dict:
@@ -696,6 +704,13 @@ class ManipuladorControlRoom(ManipuladorPainel):
         # /api/orq/usuarios  e  /api/orq/usuarios/<id>/<acao>
         elif partes == ["api", "orq", "usuarios"]:
             self._criar_usuario(corpo)
+        # /api/orq/usuarios/<id>/acao (ação no corpo)
+        elif (
+            len(partes) == 5
+            and partes[:3] == ["api", "orq", "usuarios"]
+            and partes[4] == "acao"
+        ):
+            self._acao_usuario(partes[3], str(corpo.get("acao") or ""), corpo)
         elif len(partes) == 5 and partes[:3] == ["api", "orq", "usuarios"]:
             self._acao_usuario(partes[3], partes[4], corpo)
         # /api/orq/papeis  e  /api/orq/papeis/<nome>/permissoes
@@ -772,6 +787,25 @@ class ManipuladorControlRoom(ManipuladorPainel):
             for papel in papeis:
                 servico.atribuir_papel(usuario_id, str(papel))
             self._json(200, {"ok": True, "id": usuario_id, "papeis": [str(p) for p in papeis]})
+        elif acao == "acesso":
+            papeis = corpo.get("papeis") if isinstance(corpo.get("papeis"), list) else []
+            atualizado = servico.definir_acesso_usuario(
+                usuario_id,
+                [str(p) for p in papeis],
+                admin=bool(corpo.get("admin")),
+                ativo=corpo.get("ativo", True) is not False,
+                ator=corpo.get("ator"),
+            )
+            if atualizado is None:
+                self._json(404, {"erro": "Usuário não encontrado."})
+                return
+            self._json(200, {
+                "ok": True,
+                "id": usuario_id,
+                "papeis": atualizado.get("papeis", []),
+                "admin": atualizado.get("admin"),
+                "ativo": atualizado.get("ativo"),
+            })
         elif acao == "ativo":
             with servico.conectar() as conexao:
                 conexao.execute(
@@ -779,6 +813,31 @@ class ManipuladorControlRoom(ManipuladorPainel):
                     (int(bool(corpo.get("ativo", True))), usuario_id),
                 )
             self._json(200, {"ok": True})
+        elif acao == "admin":
+            usuario = servico.obter_usuario(usuario_id)
+            if usuario is None:
+                self._json(404, {"erro": "Usuário não encontrado."})
+                return
+            administrador = bool(corpo.get("admin", True))
+            with servico.conectar() as conexao:
+                conexao.execute(
+                    "UPDATE usuarios SET admin = ? WHERE id = ?",
+                    (int(administrador), usuario_id),
+                )
+            if administrador:
+                servico.atribuir_papel(usuario_id, servico.PAPEL_ADMIN)
+            else:
+                servico.remover_papel(usuario_id, servico.PAPEL_ADMIN)
+            servico.registrar_auditoria(
+                "admin", recurso=f"usuario:{usuario.get('email')}",
+                ator=corpo.get("ator"), detalhe=str(administrador),
+            )
+            self._json(200, {"ok": True, "id": usuario_id, "admin": administrador})
+        elif acao == "remover":
+            if servico.apagar_usuario(usuario_id, ator=corpo.get("ator")):
+                self._json(200, {"ok": True, "id": usuario_id})
+            else:
+                self._json(404, {"erro": "Usuário não encontrado."})
         else:
             self._json(404, {"erro": "Ação de usuário desconhecida."})
 
@@ -1042,6 +1101,9 @@ class ManipuladorControlRoom(ManipuladorPainel):
                     descricao=corpo.get("descricao"),
                     processo_id=corpo.get("processo_id"),
                     ator=corpo.get("ator"),
+                    tipo=corpo.get("tipo"),
+                    pessoas=corpo.get("pessoas"),
+                    tempo=corpo.get("tempo"),
                 )
             else:
                 fluxo = servico.atualizar_fluxo(
@@ -1052,6 +1114,9 @@ class ManipuladorControlRoom(ManipuladorPainel):
                     descricao=corpo.get("descricao"),
                     processo_id=corpo.get("processo_id"),
                     ator=corpo.get("ator"),
+                    tipo=corpo.get("tipo"),
+                    pessoas=corpo.get("pessoas"),
+                    tempo=corpo.get("tempo"),
                 )
         except ValueError as erro:
             self._json(400, {"erro": str(erro)})

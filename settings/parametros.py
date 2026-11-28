@@ -175,9 +175,9 @@ CONTROL_ROOM_TOKEN = LAGOA_TOKEN
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@rpa.local").strip()
 ADMIN_SENHA = os.getenv("ADMIN_SENHA", "admin")
 
-# Exigir login (sessão) para as ações do painel? Desligado por padrão para não
-# atrapalhar o uso local/dev. Ligue em ambientes compartilhados/rede.
-LAGOA_AUTH = _como_bool(_env("LAGOA_AUTH", "CONTROL_ROOM_AUTH", padrao="false"), False)
+# Exigir login (sessão) para as ações do painel? Ligado por padrão (igual ao
+# Cloud). Use LAGOA_AUTH=false apenas em laboratório isolado/sem rede.
+LAGOA_AUTH = _como_bool(_env("LAGOA_AUTH", "CONTROL_ROOM_AUTH", padrao="true"), True)
 CONTROL_ROOM_AUTH = LAGOA_AUTH
 
 # Horas de validade de uma sessão de usuário

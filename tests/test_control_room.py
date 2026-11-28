@@ -711,3 +711,73 @@ def test_conectar_fecha_conexao_e_faz_rollback(monkeypatch):
             raise RuntimeError("falha de propósito")
 
     assert banco_orq.obter_maquina_por_nome("tmp") is None
+
+
+def test_novos_perfis_de_acesso_e_admin_recebe_todos():
+    novas = {
+        "jobs.ver", "jobs.retry", "processos.ver", "assets.rotacionar",
+        "credenciais.ler", "credenciais.rotacionar", "filas.itens_gerir",
+        "auditoria.exportar", "relatorios.ver", "sistema.configurar",
+    }
+    assert novas.issubset(set(servico.PERMISSOES_PADRAO))
+    servico.garantir_admin_padrao()
+    admin = servico.obter_usuario_por_email(servico.ADMIN_EMAIL)
+    assert novas.issubset(set(servico.permissoes_do_usuario(admin["id"])))
+
+
+def test_acoes_admin_e_remover_usuario_pela_rota_unica():
+    class HandlerFake:
+        def __init__(self):
+            self.resposta = None
+
+        def _json(self, status, corpo):
+            self.resposta = (status, corpo)
+
+    usuario = servico.criar_usuario("Teste", "teste@acesso.local", "senha123")
+    handler = HandlerFake()
+    metodo = servidor_orq.ManipuladorControlRoom._acao_usuario
+
+    metodo(handler, str(usuario["id"]), "admin", {"admin": True, "ator": "ana"})
+    assert handler.resposta[0] == 200
+    assert handler.resposta[1]["admin"] is True
+    assert servico.PAPEL_ADMIN in [p["nome"] for p in servico.papeis_do_usuario(usuario["id"])]
+
+    metodo(handler, str(usuario["id"]), "remover", {"acao": "remover", "ator": "ana"})
+    assert handler.resposta[0] == 200
+    assert servico.obter_usuario(usuario["id"]) is None
+
+    assert servidor_orq._permissao_da_rota(
+        "POST", f"/api/orq/usuarios/{usuario['id']}/acao"
+    ) == "usuarios.gerir"
+
+
+def test_acao_acesso_atualiza_perfis_admin_e_status():
+    class HandlerFake:
+        def __init__(self):
+            self.resposta = None
+
+        def _json(self, status, corpo):
+            self.resposta = (status, corpo)
+
+    usuario = servico.criar_usuario(
+        "Acesso", "acesso@exemplo.local", "senha123", papeis=["Operador"], admin=True
+    )
+    handler = HandlerFake()
+    metodo = servidor_orq.ManipuladorControlRoom._acao_usuario
+
+    metodo(handler, str(usuario["id"]), "acesso", {
+        "acao": "acesso",
+        "papeis": ["Auditor"],
+        "admin": False,
+        "ativo": False,
+        "ator": "ana",
+    })
+
+    assert handler.resposta[0] == 200
+    atualizado = servico.obter_usuario(usuario["id"])
+    assert atualizado["admin"] == 0
+    assert atualizado["ativo"] == 0
+    nomes = [p["nome"] for p in servico.papeis_do_usuario(usuario["id"])]
+    assert "Auditor" in nomes
+    assert "Operador" not in nomes
+    assert servico.PAPEL_ADMIN not in nomes

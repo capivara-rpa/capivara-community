@@ -171,7 +171,9 @@ def gerar_markdown(fluxo: dict[str, Any]) -> str:
     versao = fluxo.get("versao") or 1
     agora = datetime.now().strftime("%d/%m/%Y %H:%M")
     execucoes = fluxo.get("execucoes_por_dia") or 1
-    vinculo = fluxo.get("processo_nome") or fluxo.get("fluxo") or "—"
+    tipo = fluxo.get("tipo") or "Não informado"
+    pessoas = fluxo.get("pessoas") or 0
+    tempo = fluxo.get("tempo") or "Não informado"
 
     linhas = [
         f"# PDD — {nome}",
@@ -183,8 +185,10 @@ def gerar_markdown(fluxo: dict[str, Any]) -> str:
         "| Campo | Valor |",
         "| --- | --- |",
         f"| Processo | {nome} |",
+        f"| Tipo do processo | {tipo} |",
         f"| Execuções por dia | {execucoes} |",
-        f"| Automação vinculada | {vinculo} |",
+        f"| Pessoas hoje | {pessoas} |",
+        f"| Tempo por execução | {tempo} |",
         f"| Versão | {versao} |",
         "",
         "## 2. Objetivo e visão geral",
@@ -222,6 +226,7 @@ def gerar_markdown(fluxo: dict[str, Any]) -> str:
         "## 6. Controles e critérios de aceite",
         "",
         f"- Volume previsto: {execucoes} execução(ões) por dia.",
+        f"- Esforço atual: {pessoas} pessoa(s), {tempo} por execução.",
         "- Cada execução é registrada no Monitor da Lagoa com status e trace de passos.",
         "- Falhas de negócio e falhas sistêmicas são classificadas no painel de execuções.",
         "- Toda alteração neste documento é registrada na auditoria da Lagoa.",
@@ -238,7 +243,9 @@ def gerar_html(fluxo: dict[str, Any]) -> str:
     agora = datetime.now().strftime("%d/%m/%Y %H:%M")
     descricao = html.escape(_limpo(fluxo.get("descricao"), 4000) or "Objetivo não informado.")
     execucoes = html.escape(str(fluxo.get("execucoes_por_dia") or 1))
-    vinculo = html.escape(_limpo(fluxo.get("processo_nome") or fluxo.get("fluxo"), 200) or "—")
+    tipo = html.escape(_limpo(fluxo.get("tipo"), 120) or "Não informado")
+    pessoas = html.escape(str(fluxo.get("pessoas") or 0))
+    tempo = html.escape(_limpo(fluxo.get("tempo"), 100) or "Não informado")
 
     etapas = []
     for passo in passos:
@@ -293,8 +300,10 @@ footer {{ margin-top: 34px; color: #6c766f; font-size: 11px; }}
 <p class="meta">Documento de Definição de Processo · versão {versao} · gerado em {agora} pela Lagoa</p>
 <h2>1. Identificação</h2>
 <table><tr><th>Processo</th><td>{nome}</td></tr>
+<tr><th>Tipo do processo</th><td>{tipo}</td></tr>
 <tr><th>Execuções por dia</th><td>{execucoes}</td></tr>
-<tr><th>Automação vinculada</th><td>{vinculo}</td></tr>
+<tr><th>Pessoas hoje</th><td>{pessoas}</td></tr>
+<tr><th>Tempo por execução</th><td>{tempo}</td></tr>
 <tr><th>Versão</th><td>{versao}</td></tr></table>
 <h2>2. Objetivo e visão geral</h2>
 <p>{descricao}</p>
@@ -307,6 +316,7 @@ footer {{ margin-top: 34px; color: #6c766f; font-size: 11px; }}
 <h2>6. Controles e critérios de aceite</h2>
 <ul>
 <li>Volume previsto: {execucoes} execução(ões) por dia.</li>
+<li>Esforço atual: {pessoas} pessoa(s), {tempo} por execução.</li>
 <li>Cada execução é registrada no Monitor da Lagoa com status e trace de passos.</li>
 <li>Falhas de negócio e sistêmicas são classificadas no painel de execuções.</li>
 <li>Toda alteração neste documento é registrada na auditoria da Lagoa.</li>

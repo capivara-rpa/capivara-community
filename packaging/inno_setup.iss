@@ -8,7 +8,7 @@
 ; Gera dist\instalador\lagoa_instalador.exe, que instala:
 ;   - Lagoa (lagoa.exe)
 ;   - Agente (robo_agente.exe) — com opção de iniciar junto com o Windows
-;   - Extensão TrackTab (pasta tracktab\)
+;   - Extensão Capivara Captura (pasta tracktab\)
 ;   - Scripts iniciar_lagoa.cmd / iniciar_agente.cmd (definem RPA_PASTA_DADOS)
 
 #define MeuAppNome "Capivara Lagoa"
@@ -18,7 +18,7 @@
 #define MeuAgenteExe "robo_agente.exe"
 #define OrigemExe "..\dist\lagoa.exe"
 #define OrigemAgente "..\dist\robo_agente.exe"
-#define OrigemTrackTab "..\tracktab"
+#define OrigemCaptura "..\tracktab"
 
 [Setup]
 AppId={{E14A4B57-0F3B-4A64-8B2C-73D9C2F0A1DE}
@@ -49,13 +49,13 @@ Source: "{#OrigemAgente}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "iniciar_lagoa.cmd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "iniciar_agente.cmd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\.env.example"; DestDir: "{app}"; DestName: ".env.example"; Flags: ignoreversion
-; Extensão TrackTab (para carregar em chrome://extensions -> "Carregar sem compactação")
-Source: "{#OrigemTrackTab}\*"; DestDir: "{app}\tracktab"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Extensão Capivara Captura (para carregar em chrome://extensions -> "Carregar sem compactação")
+Source: "{#OrigemCaptura}\*"; DestDir: "{app}\tracktab"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\{#MeuAppNome}"; Filename: "{app}\iniciar_lagoa.cmd"
 Name: "{group}\Agente (manual)"; Filename: "{app}\iniciar_agente.cmd"
-Name: "{group}\Extensão TrackTab (abrir pasta)"; Filename: "{app}\tracktab"
+Name: "{group}\Capivara Captura (abrir pasta)"; Filename: "{app}\tracktab"
 Name: "{group}\Desinstalar {#MeuAppNome}"; Filename: "{uninstallexe}"
 ; Atalho na inicialização do usuário (equivale a "serviço" do agente)
 Name: "{userstartup}\Agente Capivara"; Filename: "{app}\iniciar_agente.cmd"; Tasks: agente_autostart

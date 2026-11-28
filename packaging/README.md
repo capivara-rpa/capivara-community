@@ -1,4 +1,4 @@
-# Instaladores (Lagoa + Agente + TrackTab)
+# Instaladores (Lagoa + Agente + Capivara Captura)
 
 Os binários são gerados com **PyInstaller** e empacotados como instaladores de
 desktop — assim dá para subir a Lagoa e um agente **sem Python** na
@@ -13,7 +13,7 @@ máquina de destino. Os scripts abaixo montam o pacote completo.
 |---|---|---|
 | macOS (pasta/zip) | `bash packaging/build_mac.sh` | `dist/RPA-Brasil/` + `dist/RPA-Brasil-macos.zip` |
 | macOS (.dmg) | `bash packaging/build_dmg.sh` | `dist/RPA-Brasil-macos.dmg` |
-| TrackTab | `bash packaging/build_tracktab.sh` | `dist/tracktab.zip` (Chrome Web Store) |
+| Capivara Captura | `bash packaging/build_tracktab.sh` | `dist/tracktab.zip` (Chrome Web Store) |
 | Windows | (ver abaixo) `iscc packaging/inno_setup.iss` | `dist/instalador/lagoa_instalador.exe` |
 
 ### macOS — instalador .dmg (app de duplo-clique)
@@ -44,8 +44,8 @@ do app com um prefixo (labels e pasta próprios):
 bash packaging/build_mac.sh
 ```
 
-Monta `dist/RPA-Brasil/` com os binários, a extensão `tracktab/` e o
-`instalar_mac.sh`. No Mac de destino, descompacte e rode:
+Monta `dist/RPA-Brasil/` com os binários, a extensão `tracktab/` (Capivara
+Captura) e o `instalar_mac.sh`. No Mac de destino, descompacte e rode:
 
 ```bash
 ./instalar_mac.sh                       # instala em ~/RPA Brasil e sobe tudo
@@ -66,11 +66,11 @@ reconectam) e remove a quarentena do Gatekeeper.
 3. `iscc packaging/inno_setup.iss` → `dist/instalador/lagoa_instalador.exe`.
 
 O instalador traz a Lagoa, o Agente (com opção de **iniciar com o
-Windows** via atalho na inicialização), a extensão TrackTab e os scripts
+Windows** via atalho na inicialização), a extensão Capivara Captura e os scripts
 `iniciar_lagoa.cmd` / `iniciar_agente.cmd` (definem `RPA_PASTA_DADOS`
 ao lado do app).
 
-### TrackTab (extensão Chrome)
+### Capivara Captura (extensão Chrome)
 
 ```bash
 bash packaging/build_tracktab.sh        # dist/tracktab.zip

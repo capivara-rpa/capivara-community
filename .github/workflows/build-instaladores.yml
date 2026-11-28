@@ -1,6 +1,6 @@
 name: build-instaladores
 
-# Compila os binários/instaladores da Lagoa, do Agente e da extensão TrackTab.
+# Compila os binários/instaladores da Lagoa, do Agente e da Capivara Captura.
 # Em push para main: gera artefatos (debug).
 # Em tag v*.: anexa os binários ao release do GitHub.
 
@@ -51,7 +51,7 @@ jobs:
           }
           & $isexe.FullName "packaging\inno_setup.iss"
 
-      - name: Empacotar TrackTab (.zip)
+      - name: Empacotar Capivara Captura (.zip)
         shell: pwsh
         run: |
           Compress-Archive -Path tracktab\* -DestinationPath dist\tracktab.zip -Force
@@ -94,10 +94,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pyinstaller
 
-      - name: Gerar pacote macOS (binários + TrackTab + instalador)
+      - name: Gerar pacote macOS (binários + Capivara Captura + instalador)
         run: bash packaging/build_mac.sh
 
-      - name: Empacotar TrackTab (.zip)
+      - name: Empacotar Capivara Captura (.zip)
         run: bash packaging/build_tracktab.sh dist/tracktab.zip
 
       - name: Anexar ao release (tags)

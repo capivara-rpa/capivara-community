@@ -3,29 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TrackTab</title>
+  <title>Capivara Captura</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div class="container">
     <header class="header">
       <div class="logo">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-          <circle cx="12" cy="12" r="4" fill="currentColor"/>
-          <line x1="12" y1="2" x2="12" y2="6" stroke="currentColor" stroke-width="2"/>
-          <line x1="12" y1="18" x2="12" y2="22" stroke="currentColor" stroke-width="2"/>
-          <line x1="2" y1="12" x2="6" y2="12" stroke="currentColor" stroke-width="2"/>
-          <line x1="18" y1="12" x2="22" y2="12" stroke="currentColor" stroke-width="2"/>
-        </svg>
-        <h1>TrackTab</h1>
+        <img src="../icons/icon48.png" alt="" class="logo-img" width="32" height="32">
+        <div>
+          <h1>Capivara Captura</h1>
+          <span class="subtitulo">Seletores para suas automações</span>
+        </div>
       </div>
-      <span class="version">v1.0</span>
+      <span class="version">v1.1</span>
     </header>
 
     <div class="status-bar" id="statusBar">
       <span class="status-dot" id="statusDot"></span>
-      <span class="status-text" id="statusText">Pronto para gravar</span>
+      <span class="status-text" id="statusText">Pronto para capturar</span>
     </div>
 
     <div class="controls">
@@ -33,7 +29,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
           <polygon points="5,3 19,12 5,21"/>
         </svg>
-        Iniciar Gravação
+        Iniciar captura
       </button>
       <button class="btn btn-stop" id="btnStop" disabled>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">

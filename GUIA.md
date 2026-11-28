@@ -72,7 +72,7 @@ Você **não precisa** mexer em tudo — só no que for usar. Os campos mais com
 | `PORTA_LAGOA` | Porta do painel (Lagoa em `/`, Monitor em `/monitor/`) | `8765` |
 | `LAGOA_URL` | Onde o robô/agente busca dados (assets/filas) | `http://127.0.0.1:8765` |
 | `LAGOA_TOKEN` | Token **global** do agente (vazio = painel aberto em dev) | *(vazio)* |
-| `LAGOA_AUTH` | `true` exige **login** no painel; `false` deixa aberto (dev/LAN) | `false` |
+| `LAGOA_AUTH` | `true` exige **login** no painel (padrão); `false` só em lab isolado | `true` |
 | `ADMIN_EMAIL` / `ADMIN_SENHA` | Admin criado no 1º start quando `LAGOA_AUTH=true` | `admin@rpa.local` / `admin` |
 | `VAULT_CHAVE` | Frase que cifra os segredos (assets) | *(troque!)* |
 | `SEGUNDOS_OFFLINE` | Tempo sem heartbeat até a máquina ficar **offline** | `60` |
@@ -133,12 +133,12 @@ scripts\lagoa.bat --exemplos
 Abra no navegador:
 
 - **Lagoa** → http://localhost:8765
-- **Monitor (trace)** → http://localhost:8765/monitor/
+- **Monitor (trace)** → http://localhost:8765/monitor/ (abre pelo **Detalhes** do job)
 
-O menu lateral tem: **Lagoa** (jobs), **Dispositivos**, **Fluxos & PDD**,
-**Filas**, **Credenciais**, **Acessos** e **Sistema → Monitor**. As abas
-**Agendamentos** e **Automações** ficam no mesmo menu.
-Use o botão do rodapé da barra lateral para alternar **tema claro/escuro**.
+O menu lateral tem: **Lagoa** (jobs), **Dispositivos**, **Agendamentos**,
+**Automações**, **Documentos** (Fluxos & PDD), **Filas**, **Credenciais**,
+**Auditoria** e **Usuários**. Use o botão do rodapé da barra lateral para
+alternar **tema claro/escuro**.
 
 > A Lagoa e o Monitor usam **SQLite + biblioteca padrão**. Os bancos ficam
 > em `data/orquestrador.db` e `data/monitor.db` (fora do Git).
@@ -225,13 +225,13 @@ oferece iniciar o agente junto com o Windows.
 
 | Cenário | O agente precisa de token? |
 |---|---|
-| `LAGOA_TOKEN` vazio **e** `LAGOA_AUTH=false` | **Não** — painel aberto (dev/rede local). O agente conecta sem token. |
+| `LAGOA_AUTH=true` (padrão, login ligado) | **Sim** — precisa do **token de máquina** (ou global). |
 | `LAGOA_TOKEN` definido (global) | Sim — use o **global** ou um **token de máquina**. |
-| `LAGOA_AUTH=true` (login ligado) | Sim — precisa do **token de máquina** (ou global). |
+| `LAGOA_AUTH=false` | **Não** — apenas em laboratório isolado; painel aberto e agente sem token. |
 
-Ou seja: no seu laboratório em rede local, o token é opcional. No momento em que
-você expõe a Lagoa (fora da sua máquina) **ou** liga o login, o token passa
-a ser obrigatório.
+Ou seja: o login vem ligado por padrão (igual ao Cloud), então configure o token
+da máquina em **Dispositivos** antes de subir o agente. Só desligue
+(`LAGOA_AUTH=false`) num laboratório isolado, sem rede.
 
 ### 6.4 Revogar / trocar
 
@@ -259,13 +259,16 @@ Se um token vazar, revogue: o antigo deixa de funcionar imediatamente.
    ou pelo diálogo de detalhes. Se o fluxo quiser cooperar, ele pode checar
    `agente.cancelado()` e encerrar sozinho.
 
-**Fluxos & PDD** (aba Fluxos & PDD): documente o processo antes de automatizar.
-Clique em **+ Novo fluxo**, informe o **nome**, **quantas vezes o robô roda por
-dia** e descreva o passo a passo (uma linha por etapa). O botão **Gerar passos no
-diagrama** transforma linhas que começam com `Se`, `Senão` ou `Erro` em decisões
-e exceções; os nós podem ser arrastados. **Salvar fluxo** cria uma versão do
-**PDD**; o botão **Ver PDD** abre o Markdown e permite imprimir/baixar em HTML ou
-`.md`. O diagrama usa Mermaid e a permissão RBAC é `pdd.gerir`.
+**Documentos** (aba Documentos / Fluxos & PDD): documente o processo antes de
+automatizar. Clique em **+ Novo fluxo**, informe o **nome**, o **tipo**,
+**quantas pessoas fazem hoje**, o **tempo por execução**, **quantas vezes o robô
+roda por dia** e descreva o passo a passo (uma linha por etapa). O botão **Gerar
+passos no diagrama** transforma linhas que começam com `Se`, `Senão` ou `Erro` em
+decisões (losango) e exceções; use os botões `+ Início`, `+ Ação`, `+ Decisão`,
+`+ Exceção` e `+ Fim` para montar o grafo arrastável. **Salvar documento** cria
+uma versão do **PDD**; o botão **Ver PDD** abre o Markdown e permite
+imprimir/baixar em HTML ou `.md`. O diagrama usa Mermaid e a permissão RBAC é
+`pdd.gerir`.
 
 **Agendamentos** (aba Agendamentos): monte o agendamento escolhendo o **robô**,
 **onde** rodar (máquina e/ou tag), a **recorrência** (intervalo, diário ou **cron**,
@@ -340,25 +343,31 @@ cred  = vault.buscar_credencial("portal")     # {usuario, senha, tipo, versao}
 vault.rotacionar("portal", "nova-senha")      # versão + 1
 ```
 
-Há **auditoria** de todas as leituras/trocas (aba Credenciais → Auditoria
-recente) e botões para **Exportar CSV** e **Expurgar antigos**.
+Há **auditoria** de todas as leituras/trocas na aba **Auditoria** (separada de
+Credenciais), com filtro por usuário/recurso e botão **Exportar CSV**. A limpeza
+antiga é feita automaticamente pela retenção configurada.
 
 ---
 
 ## 9. Login e permissões (multiempresa)
 
-Por padrão o painel é aberto (`LAGOA_AUTH=false`). Para exigir login:
+Por padrão o painel **exige login** (`LAGOA_AUTH=true`, igual ao Cloud) e cria
+o admin no primeiro start:
 
 ```bash
-# no .env:
-LAGOA_AUTH=true
+# no .env (ajuste antes do 1º start):
 ADMIN_EMAIL=admin@rpa.local
 ADMIN_SENHA=admin        # troque pelo painel depois do 1º login
+
+# Laboratório isolado, se quiser deixar sem login:
+LAGOA_AUTH=false
 ```
 
-No 1º start, o admin é criado automaticamente. A aba **Acessos** gerencia
-usuários, papéis e permissões (`jobs.disparar`, `maquinas.gerir`, `assets.gerir`,
-`usuarios.gerir`, ...).
+No 1º start, o admin é criado automaticamente. A aba **Usuários** gerencia
+contas e a tabela **Perfis de acesso** (dentro dela) usa um seletor com perfis
+prontos e checkboxes com rótulos legíveis (`Disparar jobs`, `Gerenciar máquinas`,
+`Gerenciar assets`, `Gerenciar usuários`, ...). Existem 10 novos perfis de acesso
+para visualização de jobs, relatórios, rotação de segredos e configuração.
 
 ---
 
@@ -529,7 +538,7 @@ Para uma máquina **sem Python**, gere binários com **PyInstaller**:
 ```bash
 pip install pyinstaller
 
-# macOS: pacote completo (Lagoa + Agente + TrackTab + serviços)
+# macOS: pacote completo (Lagoa + Agente + Capivara Captura + serviços)
 bash packaging/build_mac.sh          # gera dist/RPA-Brasil-macos.zip
 
 # Windows: instalador .exe (Inno Setup)
@@ -594,5 +603,5 @@ python -m compileall -q app core settings bot_test
 - [`data/docs/CATALOGO_FUNCOES.md`](data/docs/CATALOGO_FUNCOES.md) — todas as funções em português.
 - [`data/docs/ARQUITETURA.md`](data/docs/ARQUITETURA.md) — como o motor é organizado.
 - [`data/docs/REDE.md`](data/docs/REDE.md) — rede, token, TLS, VPN.
-- [`packaging/README.md`](packaging/README.md) — instaladores e TrackTab.
+- [`packaging/README.md`](packaging/README.md) — instaladores e Capivara Captura.
 - [`bot_test/README.md`](bot_test/README.md) — robôs de teste prontos.

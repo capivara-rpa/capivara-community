@@ -311,7 +311,7 @@ robô. Tudo em português, com log automático e sem dependência nova:
 | `api` | `core/rpa/api.py` | + PATCH/HEAD, upload multipart e download para arquivo |
 | `email` | `core/rpa/email.py` | + HTML, CC/BCC, Reply-To e teste de SMTP |
 | `Navegador` | `core/rpa/browser.py` | + texto/HTML da página, tabelas, cookies, abas, alertas, JS e captura de elemento |
-| `tracktab` | `core/rpa/tracktab.py` | + buscar/obter seletor, listar, CSV, resumo e combinar exports |
+| `tracktab` | `core/rpa/tracktab.py` | + buscar/obter seletor (exports da Capivara Captura), listar, CSV, resumo e combinar |
 
 ```python
 from core.rpa import banco, notificacoes, seguranca, texto, validacao
@@ -408,21 +408,25 @@ No painel: clique em **Executar** num processo (ou “+ Novo job”), escolha a
 máquina (ou “qualquer”), e o agente que estiver livre pega o job. O resultado e
 o passo a passo aparecem na hora — cada job tem link para o seu **trace**.
 
-O painel tem as abas: **Jobs** (Lagoa), **Dispositivos**, **Fluxos & PDD**,
-**Agendamentos**, **Automações**, **Filas**, **Assets** e **Acessos** (usuários,
-papéis e permissões).
+O painel tem as abas: **Jobs** (Lagoa), **Dispositivos**, **Agendamentos**,
+**Automações**, **Documentos** (Fluxos & PDD), **Filas**, **Credenciais**,
+**Auditoria** e **Usuários**. O Monitor de execuções é acessado pelo trace de
+cada job, sem menu separado.
 
-- **Login / RBAC (multiempresa)** — por padrão a Lagoa é aberta
-  (`LAGOA_AUTH=false`, ideal para dev/LAN). Ligue `LAGOA_AUTH=true`
-  para exigir login: o primeiro start cria o admin padrão
+- **Login / RBAC (multiempresa)** — por padrão a Lagoa **exige login**
+  (`LAGOA_AUTH=true`, igual ao Cloud). O primeiro start cria o admin padrão
   (`ADMIN_EMAIL`/`ADMIN_SENHA`, padrão `admin@rpa.local` / `admin` — **troque em
-  produção**). A aba **Acessos** gerencia usuários, papéis e permissões
-  granulares (`jobs.disparar`, `assets.gerir`, `usuarios.gerir`…); a sessão é um
-  cookie `HttpOnly` com validade de `SESSAO_HORAS`.
+  produção**). A aba **Usuários** gerencia usuários, papéis e permissões
+  granulares (com rótulos amigáveis e perfis prontos em **Perfis de acesso**); a sessão é um
+  cookie `HttpOnly` com validade de `SESSAO_HORAS`. Use `LAGOA_AUTH=false` só em
+  laboratório isolado (sem login, sem token de agente).
 
   ```bash
-  LAGOA_AUTH=true ADMIN_EMAIL=eu@empresa.com ADMIN_SENHA=segredo \
+  ADMIN_EMAIL=eu@empresa.com ADMIN_SENHA=segredo \
       python -m core.control_room.servidor
+
+  # Laboratório isolado, sem tela de login:
+  LAGOA_AUTH=false python -m core.control_room.servidor
   ```
 
 - **Pools por tag** — cadastre tags nas máquinas (`--tags "sp,financeiro"`) e use
@@ -434,9 +438,10 @@ papéis e permissões).
   ```
 
 - **Token por máquina** — cada máquina pode ter o seu próprio token (emitido em
-  `POST /api/orq/maquinas/<nome>/token` ou na aba Acessos), revogável
+  `POST /api/orq/maquinas/<nome>/token` ou na aba **Dispositivos**), revogável
   individualmente. O agente usa com `--token`; o `LAGOA_TOKEN` global
-  continua valendo como coringa.
+  continua valendo como coringa. Com `LAGOA_AUTH=true`, o token do agente é
+  obrigatório.
 
 - **Agendamentos (triggers)** — dispare jobs automaticamente por **intervalo**
   (a cada N minutos), **diário** (HH:MM) ou **cron** (expressão de 5 campos, ex.:
@@ -446,12 +451,13 @@ papéis e permissões).
   Na aba dá para **pausar/ativar**, **executar na hora** e remover. O servidor
   verifica os vencidos num *loop* de fundo (`INTERVALO_TRIGGERS` no `.env`, 15s).
 
-- **Fluxos & PDD (documentação do processo)** — na aba **Fluxos & PDD** você
-  informa o nome do processo, **quantas vezes o robô roda por dia** e descreve o
-  passo a passo. Linhas começando com `Se`/`Senão`/`Erro` viram **decisões** e
-  **exceções** no diagrama (arrastável). Cada alteração gera uma nova versão do
+- **Documentos (Fluxos & PDD)** — na aba **Documentos** você informa o nome do
+  processo, o **tipo**, **quantas pessoas fazem hoje**, o **tempo por execução**,
+  **quantas vezes o robô roda por dia** e descreve o passo a passo. Linhas
+  começando com `Se`/`Senão`/`Erro` viram **decisões** (losango no diagrama) e
+  **exceções** no grafo arrastável. Cada alteração gera uma nova versão do
   **PDD** (Documento de Definição de Processo) em Markdown/HTML, com Mermaid,
-  passos, exceções e critérios de aceite. A permissão é `pdd.gerir`.
+  metadados, passos, exceções e critérios de aceite. A permissão é `pdd.gerir`.
 
 - **Automações (pacotes de robô)** — publica um robô pela UI de duas formas:
   - **.zip** — envie um **.zip** com o manifesto `rpa.json` na aba **Automações**
@@ -570,13 +576,14 @@ papéis e permissões).
   em `TEMPLATE/`.
 
 - **Rede + token + TLS** — para rodar agentes em **outras máquinas**, suba a
-  Lagoa com `HOST_LAGOA=0.0.0.0` (aceita a rede). Se for expor fora
-  de uma rede confiável (VPN/hosted), defina `LAGOA_TOKEN` no `.env` do
-  servidor **e** em cada agente (`--token` ou a mesma variável), e ligue HTTPS com
-  `--cert`/`--chave` (ou `TLS_CERT`/`TLS_CHAVE`). Sem token, a Lagoa fica
-  aberta (ideal para dev/rede local). Só as rotas dos **agentes** (registrar,
-  buscar job, reportar execução, ler assets) exigem o token — o painel continua
-  acessível no navegador:
+  Lagoa com `HOST_LAGOA=0.0.0.0` (aceita a rede). Como o login vem ligado por
+  padrão, o agente precisa de um **token de máquina** (ou do `LAGOA_TOKEN`
+  global); em laboratório isolado use `LAGOA_AUTH=false` para dispensar token.
+  Se for expor fora de uma rede confiável (VPN/hosted), defina `LAGOA_TOKEN` no
+  `.env` do servidor **e** em cada agente (`--token` ou a mesma variável), e ligue
+  HTTPS com `--cert`/`--chave` (ou `TLS_CERT`/`TLS_CHAVE`). Só as rotas dos
+  **agentes** (registrar, buscar job, reportar execução, ler assets) exigem o
+  token; o painel pede login no navegador:
 
   ```bash
   # servidor (com token e HTTPS opcional)
@@ -632,10 +639,10 @@ pip install pyinstaller
 pyinstaller --noconfirm packaging/lagoa.spec   # dist/lagoa
 pyinstaller --noconfirm packaging/agente.spec         # dist/robo_agente
 
-# macOS: pacote "tudo empacotado" (binários + TrackTab + instalador de serviços)
+# macOS: pacote "tudo empacotado" (binários + Capivara Captura + instalador de serviços)
 bash packaging/build_mac.sh                           # dist/RPA-Brasil-macos.zip
 
-# Windows: instalador .exe (Inno Setup) com Lagoa + Agente + TrackTab
+# Windows: instalador .exe (Inno Setup) com Lagoa + Agente + Capivara Captura
 iscc packaging/inno_setup.iss                         # dist/instalador/lagoa_instalador.exe
 
 # ao rodar um binário, defina onde persistir os dados:
@@ -649,11 +656,12 @@ oferece iniciar o agente junto com o Windows. O workflow
 `.github/workflows/build-instaladores.yml` gera tudo isso no CI a cada tag `v*`.
 Detalhes em [`packaging/README.md`](packaging/README.md).
 
-### Extensão TrackTab (seletores com um clique)
+### Extensão Capivara Captura (seletores com um clique)
 
-A extensão **TrackTab** (`tracktab/`) captura os elementos de uma página e exporta
-XPath (absoluto/relativo e um caminho "amigável") em JSON — ótimo para montar
-selectores sem ficar inspecionando o HTML no olho. Leia o export no robô:
+A extensão **Capivara Captura** (pasta técnica `tracktab/`) captura os elementos
+de uma página e exporta XPath (absoluto/relativo e um caminho "amigável") em
+JSON — ótimo para montar seletores sem ficar inspecionando o HTML no olho. Leia o
+export no robô:
 
 ```python
 from core.rpa import tracktab
@@ -748,7 +756,7 @@ ruff check app core settings tests
 - 📋 **[Catálogo de funções](data/docs/CATALOGO_FUNCOES.md)** — todas as funções low-code com exemplos
 - 🏗️ **[Arquitetura](data/docs/ARQUITETURA.md)** — como os módulos se relacionam e como estender
 - 🌐 **[Rede, token, TLS e VPN](data/docs/REDE.md)** — rodar agentes em outras máquinas com segurança
-- 📦 **[Instaladores](packaging/README.md)** — Lagoa/agente sem Python (macOS e Windows) e a extensão TrackTab
+- 📦 **[Instaladores](packaging/README.md)** — Lagoa/agente sem Python (macOS e Windows) e a extensão Capivara Captura
 
 ---
 

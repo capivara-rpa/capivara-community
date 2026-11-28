@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "TrackTab",
-  "version": "1.0.0",
-  "description": "Gravador de elementos para devs - capture XPath e dados de elementos com um clique",
+  "name": "Capivara Captura",
+  "version": "1.1.0",
+  "description": "Extensão da Capivara para capturar XPath e seletores de elementos com um clique",
   "permissions": ["activeTab", "scripting", "storage"],
   "action": {
     "default_popup": "popup/popup.html",

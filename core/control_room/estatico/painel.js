@@ -19,6 +19,7 @@ const estado = {
     itensPorFila: {},
     filaSelecionada: null,
     assets: [],
+    auditoria: [],
     usuarios: [],
     papeis: [],
     permissoes: [],
@@ -28,6 +29,8 @@ const estado = {
     auth: false,
     tokenNovo: null,
     filtroItem: "todos",
+    auditoriaPagina: 1,
+    auditoriaLimite: 30,
     jobAberto: null,
     visaoAgenda: "lista",
     calendario: { ano: new Date().getFullYear(), mes: new Date().getMonth() + 1, eventos: [] },
@@ -36,6 +39,8 @@ const estado = {
     fluxoEditando: null,
     fluxoRascunho: [],
     pddAtual: null,
+    acessoEditando: null,
+    papelEditando: null,
 };
 
 const el = {
@@ -63,8 +68,6 @@ const el = {
     variaveisTexto: document.getElementById("variaveis-texto"),
     variaveisErro: document.getElementById("variaveis-erro"),
     variaveisCancelar: document.getElementById("variaveis-cancelar"),
-    maquinas: document.getElementById("lista-maquinas"),
-    processos: document.getElementById("lista-processos"),
     jobs: document.getElementById("corpo-jobs"),
     triggers: document.getElementById("corpo-triggers"),
     filas: document.getElementById("corpo-filas"),
@@ -78,8 +81,6 @@ const el = {
     conexaoTexto: document.getElementById("conexao-texto"),
     relogio: document.getElementById("relogio"),
     atualizado: document.getElementById("atualizado"),
-    qtdMaquinas: document.getElementById("qtd-maquinas"),
-    qtdProcessos: document.getElementById("qtd-processos"),
     modal: document.getElementById("modal"),
     form: document.getElementById("form-job"),
     campoProcesso: document.getElementById("campo-processo"),
@@ -118,6 +119,10 @@ const el = {
     asTipo: document.getElementById("as-tipo"),
     asDesc: document.getElementById("as-desc"),
     corpoAuditoria: document.getElementById("corpo-auditoria"),
+    auditLimite: document.getElementById("audit-limite"),
+    auditAnterior: document.getElementById("audit-anterior"),
+    auditProximo: document.getElementById("audit-proximo"),
+    auditInfo: document.getElementById("audit-info"),
     formFila: document.getElementById("form-fila"),
     fiNome: document.getElementById("fi-nome"),
     fiProcesso: document.getElementById("fi-processo"),
@@ -132,10 +137,24 @@ const el = {
     usNome: document.getElementById("us-nome"),
     usEmail: document.getElementById("us-email"),
     usSenha: document.getElementById("us-senha"),
-    usPapeis: document.getElementById("us-papeis"),
+    usPapeis: document.getElementById("us-papeis-lista"),
     usAdmin: document.getElementById("us-admin"),
+    dialogUsuario: document.getElementById("dialog-usuario"),
+    usuarioTitulo: document.getElementById("usuario-titulo"),
+    btnNovoUsuario: document.getElementById("btn-novo-usuario"),
+    formAcesso: document.getElementById("form-acesso"),
+    dialogAcesso: document.getElementById("dialog-acesso"),
+    acessoTitulo: document.getElementById("acesso-titulo"),
+    acessoEmail: document.getElementById("acesso-email"),
+    acessoPapeis: document.getElementById("acesso-papeis"),
+    acessoAdmin: document.getElementById("acesso-admin"),
+    acessoAtivo: document.getElementById("acesso-ativo"),
     formPapel: document.getElementById("form-papel"),
+    papelTitulo: document.getElementById("papel-titulo"),
+    dialogPapel: document.getElementById("dialog-papel"),
+    btnNovoPapel: document.getElementById("btn-novo-papel"),
     paNome: document.getElementById("pa-nome"),
+    paPerfil: document.getElementById("pa-perfil"),
     paPermissoes: document.getElementById("pa-permissoes"),
     usuarioArea: document.getElementById("usuario-area"),
     usuarioNome: document.getElementById("usuario-nome"),
@@ -150,7 +169,6 @@ const el = {
     loginErro: document.getElementById("login-erro"),
     listaSla: document.getElementById("lista-sla"),
     slaTotal: document.getElementById("sla-total"),
-    btnExpurgar: document.getElementById("btn-expurgar"),
     linkCsv: document.getElementById("link-csv"),
     formMaquina: document.getElementById("form-maquina"),
     mqNome: document.getElementById("mq-nome"),
@@ -173,7 +191,9 @@ const el = {
     formFluxo: document.getElementById("form-fluxo"),
     pdNome: document.getElementById("pd-nome"),
     pdExecucoes: document.getElementById("pd-execucoes"),
-    pdProcesso: document.getElementById("pd-processo"),
+    pdTipo: document.getElementById("pd-tipo"),
+    pdPessoas: document.getElementById("pd-pessoas"),
+    pdTempo: document.getElementById("pd-tempo"),
     pdDescricao: document.getElementById("pd-descricao"),
     pdPassosTexto: document.getElementById("pd-passos-texto"),
     pdGerarTexto: document.getElementById("pd-gerar-texto"),
@@ -195,6 +215,9 @@ function escapar(texto) {
     return String(texto ?? "").replace(/[&<>"']/g, (c) => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
     }[c]));
+}
+function ativoBool(valor) {
+    return valor === true || Number(valor) === 1 || String(valor).toLowerCase() === "true";
 }
 function hora(iso) { return iso ? iso.slice(11, 19) : "—"; }
 function haQuanto(iso) {
@@ -224,7 +247,11 @@ function rotuloItem(status) { return estado.itemInfo[status]?.rotulo || status; 
 
 async function buscarJSON(url, opcoes) {
     const resp = await fetch(url, { cache: "no-store", ...opcoes });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    if (!resp.ok) {
+        const dados = await resp.json().catch(() => ({}));
+        const detalhe = dados.detalhe ? ` ${dados.detalhe}` : "";
+        throw new Error(dados.erro ? `${dados.erro}${detalhe}` : `HTTP ${resp.status}`);
+    }
     return resp.json();
 }
 
@@ -265,9 +292,7 @@ async function carregar() {
         renderAuth();
         renderResumo(dados.resumo);
         renderDesempenho(dados.resumo);
-        renderMaquinas();
         renderDispositivos();
-        renderProcessos();
         renderFiltros();
         renderJobs();
         renderTriggers();
@@ -278,6 +303,9 @@ async function carregar() {
         renderAuditoria();
         renderUsuarios();
         renderPapeis();
+        renderSeletorPermissoes();
+        renderCheckboxesPerfis(el.usPapeis, perfisMarcados(el.usPapeis));
+        renderCheckboxesPerfis(el.acessoPapeis, perfisMarcados(el.acessoPapeis));
         renderFluxos();
         renderSla();
         preencherProcessosSelects();
@@ -315,11 +343,12 @@ function obterIniciais(nome) {
 
 function renderAuth() {
     const logado = !!estado.sessao;
-    const nome = estado.sessao?.nome || estado.sessao?.email || "Capivara";
+    const usuario = estado.sessao?.usuario || estado.sessao || {};
+    const nome = usuario.nome || usuario.email || "Capivara";
     if (el.usuarioArea) el.usuarioArea.hidden = !logado;
     if (logado && el.usuarioNome) el.usuarioNome.textContent = nome;
     if (el.usuarioNomeSidebar) el.usuarioNomeSidebar.textContent = nome;
-    if (el.usuarioIniciais) el.usuarioIniciais.textContent = obterIniciais(estado.sessao?.nome || nome);
+    if (el.usuarioIniciais) el.usuarioIniciais.textContent = obterIniciais(usuario.nome || nome);
     if (estado.auth && !logado) abrirLogin();
 }
 
@@ -426,32 +455,6 @@ function renderDesempenho(r) {
     }).join("");
 }
 
-// ---------- máquinas ----------
-function renderMaquinas() {
-    el.qtdMaquinas.textContent = `${estado.maquinas.length} cadastradas`;
-    if (!estado.maquinas.length) {
-        el.maquinas.innerHTML = `<p class="vazio">Nenhuma máquina registrada. Suba um agente.</p>`;
-        return;
-    }
-    el.maquinas.innerHTML = estado.maquinas.map((m) => {
-        const atual = m.job_atual ? `<div class="maquina-atual">▶ ${escapar(m.job_atual.processo_nome)} (#${m.job_atual.id})</div>` : "";
-        return `
-            <div class="maquina" style="--cor:${m.cor}">
-                <div class="maquina-topo">
-                    <span class="maquina-nome">${escapar(m.nome)}</span>
-                    <span class="badge" style="--cor:${m.cor}"><span class="ponto"></span>
-                        ${escapar(estado.maquinaInfo[m.estado]?.rotulo || m.estado)}</span>
-                </div>
-                <div class="maquina-meta">
-                    <span>${escapar(m.tags || "sem tags")}</span>
-                    <span>${haQuanto(m.ultima_atividade)}</span>
-                </div>
-                ${atual}
-            </div>`;
-    }).join("");
-}
-
-// ---------- processos ----------
 // ---------- dispositivos (gestão de máquinas) ----------
 function renderDispositivos() {
     if (!el.dispositivos) return;
@@ -565,22 +568,6 @@ function renderTokenNovo() {
         `<code>${escapar(estado.tokenNovo.token)}</code>`;
 }
 
-function renderProcessos() {
-    el.qtdProcessos.textContent = `${estado.processos.length} no catálogo`;
-    if (!estado.processos.length) {
-        el.processos.innerHTML = `<p class="vazio">Catálogo vazio.</p>`;
-        return;
-    }
-    el.processos.innerHTML = estado.processos.map((p) => `
-        <div class="processo">
-            <div>
-                <div class="processo-nome">${escapar(p.nome)}</div>
-                <div class="processo-desc">${escapar(p.descricao || "")}</div>
-            </div>
-            <button class="botao-primario" onclick="abrirModal(${p.id})">Executar</button>
-        </div>`).join("");
-}
-
 // ---------- jobs ----------
 const ORDEM_FILTROS = ["pendente", "em_execucao", "concluido", "falhou", "cancelado"];
 
@@ -607,7 +594,7 @@ function renderJobs() {
     el.jobs.innerHTML = jobs.map((j) => {
         const cor = corJob(j.status);
         const trace = j.execucao_id
-            ? `<a class="acionar" href="/monitor/#exec=${j.execucao_id}" target="_blank">#${j.execucao_id}</a>`
+            ? `<button class="acionar" type="button" onclick="abrirJob(${j.id})">#${j.execucao_id}</button>`
             : "—";
         const cancelar = (j.status === "pendente" || j.status === "em_execucao")
             ? `<button class="acao" onclick="cancelarJob(${j.id})">Cancelar</button>`
@@ -663,7 +650,7 @@ async function atualizarJob(id) {
         ? `<button class="botao-secundario" onclick="cancelarJob(${j.id})">Cancelar job</button>`
         : "";
     const monitor = j.execucao_id
-        ? `<a class="botao-secundario" href="/monitor/#exec=${j.execucao_id}" target="_blank">Abrir no monitor</a>`
+        ? `<button type="button" class="botao-secundario" onclick="abrirJob(${Number(j.id)})">Ver trace</button>`
         : "";
     el.jobAcoes.innerHTML = `${cancelar}${monitor}`;
 
@@ -696,11 +683,11 @@ const TITULOS = {
     dispositivos: ["Dispositivos", "Máquinas registradas · estado, tags e tokens"],
     agendamentos: ["Agendamentos", "Disparos automáticos por intervalo, horário ou cron"],
     automacoes: ["Automações", "Publique e gerencie robôs (.zip com rpa.json)"],
-    bpmn: ["Fluxos & PDD", "Desenhe o processo e gere a documentação automaticamente"],
-    filas: ["Filas", "Filas de trabalho (datapool) e seus itens"],
-    assets: ["Credenciais", "Assets e segredos usados pelos robôs"],
-    acessos: ["Acessos", "Usuários, papéis e permissões"],
-    monitor: ["Monitor", "Execuções e passos em tempo real"],
+    documentos: ["Documentos", "Descreva, desenhe e documente seus processos"],
+    filas: ["Filas", "Filas de trabalho e seus itens"],
+    assets: ["Credenciais", "Segredos e credenciais usadas pelos robôs"],
+    auditoria: ["Auditoria", "Histórico de ações da Lagoa"],
+    usuarios: ["Usuários", "Pessoas, papéis e permissões de acesso"],
 };
 
 function trocarAba(aba) {
@@ -710,12 +697,6 @@ function trocarAba(aba) {
     el.filtros.classList.toggle("oculto", aba !== "jobs");
     if (el.painelDesempenho) el.painelDesempenho.classList.toggle("oculto", aba !== "jobs");
     if (aba === "agendamentos") aplicarVisaoAgenda();
-    const lateral = document.querySelector(".painel-lateral");
-    if (lateral) lateral.classList.toggle("oculto", aba === "monitor");
-    if (aba === "monitor") {
-        const frame = document.getElementById("frame-monitor");
-        if (frame && !frame.getAttribute("src")) frame.setAttribute("src", "/monitor/?embed=1");
-    }
     document.querySelectorAll(".sidebar-nav .nav-item[data-secao]").forEach((i) =>
         i.classList.toggle("ativo", i.dataset.secao === aba));
     const titulo = TITULOS[aba];
@@ -1125,41 +1106,169 @@ function renderAssets() {
 
 function renderAuditoria() {
     if (!el.corpoAuditoria) return;
-    if (!estado.auditoria.length) {
+    const total = estado.auditoria.length;
+    const limite = Number(estado.auditoriaLimite) || 30;
+    const paginas = Math.max(1, Math.ceil(total / limite));
+    estado.auditoriaPagina = Math.min(Math.max(1, estado.auditoriaPagina), paginas);
+    const inicio = (estado.auditoriaPagina - 1) * limite;
+    const visiveis = estado.auditoria.slice(inicio, inicio + limite);
+    if (!visiveis.length) {
         el.corpoAuditoria.innerHTML = `<tr><td colspan="5"><p class="vazio">Sem eventos.</p></td></tr>`;
-        return;
+    } else {
+        el.corpoAuditoria.innerHTML = visiveis.map((ev) => `
+            <tr>
+                <td>${hora(ev.quando)}</td>
+                <td>${escapar(ev.ator || "—")}</td>
+                <td>${escapar(ev.acao)}</td>
+                <td>${escapar(ev.recurso || "—")}</td>
+                <td>${escapar(ev.resultado || "—")}</td>
+            </tr>`).join("");
     }
-    el.corpoAuditoria.innerHTML = estado.auditoria.slice(0, 25).map((ev) => `
-        <tr>
-            <td>${hora(ev.quando)}</td>
-            <td>${escapar(ev.ator || "—")}</td>
-            <td>${escapar(ev.acao)}</td>
-            <td>${escapar(ev.recurso || "—")}</td>
-            <td>${escapar(ev.resultado || "—")}</td>
-        </tr>`).join("");
+    if (el.auditInfo) {
+        el.auditInfo.textContent = total
+            ? `${inicio + 1}–${Math.min(inicio + limite, total)} de ${total}`
+            : "0 de 0";
+    }
+    if (el.auditAnterior) el.auditAnterior.disabled = estado.auditoriaPagina <= 1;
+    if (el.auditProximo) el.auditProximo.disabled = estado.auditoriaPagina >= paginas;
 }
 
 // ---------- usuários & papéis ----------
+const ROTULO_PERMISSOES = {
+    "painel.ver": "Ver painel",
+    "jobs.ver": "Ver jobs",
+    "jobs.disparar": "Disparar jobs",
+    "jobs.cancelar": "Cancelar jobs",
+    "jobs.retry": "Retentar jobs",
+    "processos.ver": "Ver automações",
+    "processos.gerir": "Gerenciar automações",
+    "triggers.gerir": "Gerenciar agendamentos",
+    "pdd.gerir": "Gerenciar documentos/PDD",
+    "assets.gerir": "Gerenciar credenciais",
+    "assets.ler": "Ler credenciais",
+    "assets.rotacionar": "Rotacionar segredos",
+    "credenciais.ler": "Ler credenciais v2",
+    "credenciais.rotacionar": "Rotacionar credenciais",
+    "filas.gerir": "Gerenciar filas",
+    "filas.itens_gerir": "Gerenciar itens das filas",
+    "usuarios.gerir": "Gerenciar usuários",
+    "auditoria.ver": "Ver auditoria",
+    "auditoria.exportar": "Exportar auditoria",
+    "maquinas.gerir": "Gerenciar dispositivos",
+    "pacotes.instalar": "Instalar automações",
+    "relatorios.ver": "Ver relatórios",
+    "sistema.configurar": "Configurar sistema",
+};
+const PERFIS_ACESSO = {
+    Administrador: Object.keys(ROTULO_PERMISSOES),
+    Operador: ["painel.ver", "jobs.ver", "jobs.disparar"],
+    Supervisor: ["painel.ver", "jobs.ver", "jobs.cancelar", "jobs.retry", "relatorios.ver"],
+    Agendador: ["painel.ver", "processos.ver", "triggers.gerir"],
+    "Gestor de filas": ["painel.ver", "jobs.ver", "filas.gerir", "filas.itens_gerir"],
+    "Gestor de credenciais": ["painel.ver", "assets.ler", "assets.gerir", "assets.rotacionar",
+        "credenciais.ler", "credenciais.rotacionar", "auditoria.ver"],
+    Auditor: ["painel.ver", "jobs.ver", "auditoria.ver", "auditoria.exportar", "relatorios.ver"],
+    "Gestor de dispositivos": ["painel.ver", "jobs.ver", "jobs.cancelar", "maquinas.gerir"],
+    Desenvolvedor: ["painel.ver", "processos.ver", "processos.gerir", "pdd.gerir", "pacotes.instalar"],
+    "Somente leitura": ["painel.ver", "jobs.ver", "processos.ver", "relatorios.ver"],
+};
+
+function rotuloPermissao(chave) {
+    return ROTULO_PERMISSOES[chave] || chave;
+}
+
+function renderSeletorPermissoes() {
+    if (!el.paPermissoes) return;
+    const chaves = Array.from(new Set((estado.permissoes || [])
+        .map((p) => (typeof p === "string" ? p : p?.nome || p?.chave || ""))
+        .filter(Boolean))).sort();
+    const assinatura = chaves.join("|");
+    if (el.paPermissoes.dataset.chaves !== assinatura) {
+        el.paPermissoes.dataset.chaves = assinatura;
+        el.paPermissoes.innerHTML = chaves.map((chave) => `
+            <label title="${escapar(chave)}">
+                <input type="checkbox" value="${escapar(chave)}">
+                ${escapar(rotuloPermissao(chave))}
+            </label>`).join("");
+    }
+    if (el.paPerfil) {
+        el.paPerfil.innerHTML = `<option value="">Personalizado</option>` +
+            Object.keys(PERFIS_ACESSO).map((nome) => `<option value="${escapar(nome)}">${escapar(nome)}</option>`).join("");
+    }
+}
+
+function perfisDisponiveis() {
+    return Array.from(new Set((estado.papeis || [])
+        .map((p) => p?.nome || p)
+        .filter((nome) => nome && String(nome).toLowerCase() !== "admin")))
+        .sort((a, b) => String(a).localeCompare(String(b), "pt-BR"));
+}
+
+function renderCheckboxesPerfis(container, selecionadas = []) {
+    if (!container) return;
+    const nomes = perfisDisponiveis();
+    const assinatura = nomes.join("|");
+    if (container.dataset.perfis === assinatura) return;
+    container.dataset.perfis = assinatura;
+    container.innerHTML = nomes.map((nome) => `
+        <label title="Perfil ${escapar(nome)}">
+            <input type="checkbox" value="${escapar(nome)}" ${selecionadas.includes(nome) ? "checked" : ""}>
+            ${escapar(nome)}
+        </label>`).join("");
+    if (!nomes.length) container.innerHTML = `<p class="vazio">Nenhum perfil cadastrado.</p>`;
+}
+
+function perfisMarcados(container) {
+    if (!container) return [];
+    return Array.from(container.querySelectorAll("input[type=checkbox]:checked")).map((box) => box.value);
+}
+
+function marcarPerfis(container, selecionadas = []) {
+    if (!container) return;
+    container.querySelectorAll("input[type=checkbox]").forEach((box) => {
+        box.checked = selecionadas.includes(box.value);
+    });
+}
+
+function aplicarPerfilPapel() {
+    const nome = el.paPerfil?.value || "";
+    const selecionadas = PERFIS_ACESSO[nome] || [];
+    if (!el.paPermissoes) return;
+    el.paPermissoes.querySelectorAll("input[type=checkbox]").forEach((box) => {
+        box.checked = selecionadas.includes(box.value);
+    });
+    if (nome && el.paNome && !el.paNome.value.trim()) el.paNome.value = nome;
+}
+
+function permissoesMarcadas() {
+    if (!el.paPermissoes) return [];
+    return Array.from(el.paPermissoes.querySelectorAll("input[type=checkbox]:checked")).map((box) => box.value);
+}
+
 function renderUsuarios() {
     if (!el.usuarios) return;
     if (!estado.usuarios.length) {
-        el.usuarios.innerHTML = `<tr><td colspan="6"><p class="vazio">Nenhum usuário.</p></td></tr>`;
+        el.usuarios.innerHTML = `<tr><td colspan="5"><p class="vazio">Nenhum usuário.</p></td></tr>`;
         return;
     }
     el.usuarios.innerHTML = estado.usuarios.map((u) => {
-        const papeis = (u.papeis || []).map((p) => `<span class="tag">${escapar(p)}</span>`).join(" ") || "—";
-        const perms = (u.permissoes || []).length;
+        const perfis = (u.papeis || []).filter((p) => String(p).toLowerCase() !== "admin");
+        const perfisHtml = perfis.map((p) => `<span class="tag">${escapar(p)}</span>`).join(" ") || "—";
+        const acesso = u.admin
+            ? `<span class="tag acesso-total">Administrador</span>`
+            : `<span class="tag">${perfis.length ? "Por perfil" : "Sem perfil"}</span>`;
+        const ativo = ativoBool(u.ativo);
+        const status = `<span class="tag ${ativo ? "ativo" : "pausado"}">${ativo ? "Ativo" : "Inativo"}</span>`;
         return `
             <tr>
-                <td>${escapar(u.nome || "—")}</td>
-                <td>${escapar(u.email)}</td>
-                <td>${papeis}</td>
-                <td class="num">${perms}</td>
-                <td>${u.admin ? "sim" : "não"}</td>
+                <td><strong>${escapar(u.nome || "—")}</strong><span class="obs">${escapar(u.email)}</span></td>
+                <td>${perfisHtml}</td>
+                <td>${acesso}</td>
+                <td>${status}</td>
                 <td class="acoes">
-                    <button class="acao" onclick="alternarAdmin(${u.id}, ${u.admin ? 0 : 1})">
-                        ${u.admin ? "Remover admin" : "Tornar admin"}</button>
-                    <button class="acao" onclick="removerUsuario(${u.id})">Remover</button>
+                    <button class="acao" onclick="abrirAcesso(${Number(u.id)})">Editar acesso</button>
+                    <button class="acao" onclick="alternarAtivo(${Number(u.id)}, ${ativo ? 0 : 1})">${ativo ? "Desativar" : "Ativar"}</button>
+                    <button class="acao perigo" onclick="removerUsuario(${Number(u.id)})">Remover</button>
                 </td>
             </tr>`;
     }).join("");
@@ -1168,13 +1277,14 @@ function renderUsuarios() {
 function renderPapeis() {
     if (!el.papeis) return;
     if (!estado.papeis.length) {
-        el.papeis.innerHTML = `<tr><td colspan="2"><p class="vazio">Nenhum papel.</p></td></tr>`;
+        el.papeis.innerHTML = `<tr><td colspan="3"><p class="vazio">Nenhum perfil.</p></td></tr>`;
         return;
     }
     el.papeis.innerHTML = estado.papeis.map((p) => `
         <tr>
-            <td>${escapar(p.nome)}</td>
-            <td class="permissoes">${(p.permissoes || []).map((x) => `<span class="tag">${escapar(x)}</span>`).join(" ") || "—"}</td>
+            <td><strong>${escapar(p.nome)}</strong><span class="obs">${(p.permissoes || []).length} permissão(ões)</span></td>
+            <td class="permissoes">${(p.permissoes || []).map((x) => `<span class="tag" title="${escapar(x)}">${escapar(rotuloPermissao(x))}</span>`).join(" ") || "—"}</td>
+            <td class="acoes"><button class="acao" onclick="editarPapel('${escapar(p.nome)}')">Editar permissões</button></td>
         </tr>`).join("");
 }
 
@@ -1205,23 +1315,62 @@ function renderSla() {
     }).join("");
 }
 
+function abrirNovoUsuario() {
+    el.formUsuario.reset();
+    if (el.usuarioTitulo) el.usuarioTitulo.textContent = "Novo usuário";
+    renderCheckboxesPerfis(el.usPapeis, []);
+    marcarPerfis(el.usPapeis, []);
+    el.dialogUsuario?.showModal();
+}
+
 async function criarUsuario(evento) {
     evento.preventDefault();
-    const papeis = el.usPapeis.value.split(",").map((s) => s.trim()).filter(Boolean);
     const corpo = {
         nome: el.usNome.value.trim(),
         email: el.usEmail.value.trim(),
         senha: el.usSenha.value,
-        papeis,
+        papeis: perfisMarcados(el.usPapeis),
         admin: el.usAdmin.checked,
         ator: "painel",
     };
     try {
         await enviarJSON("/api/orq/usuarios", corpo);
-        el.formUsuario.reset();
+        el.dialogUsuario?.close();
         carregar();
     } catch (erro) {
         alert("Falha ao criar usuário: " + erro.message);
+    }
+}
+
+function abrirAcesso(id) {
+    const usuario = (estado.usuarios || []).find((u) => Number(u.id) === Number(id));
+    if (!usuario) return;
+    estado.acessoEditando = Number(id);
+    if (el.acessoTitulo) el.acessoTitulo.textContent = `Editar acesso de ${usuario.nome || usuario.email}`;
+    if (el.acessoEmail) el.acessoEmail.textContent = usuario.email;
+    if (el.acessoAdmin) el.acessoAdmin.checked = !!usuario.admin;
+    if (el.acessoAtivo) el.acessoAtivo.checked = ativoBool(usuario.ativo);
+    renderCheckboxesPerfis(el.acessoPapeis, usuario.papeis || []);
+    marcarPerfis(el.acessoPapeis, usuario.papeis || []);
+    el.dialogAcesso?.showModal();
+}
+
+async function salvarAcesso(evento) {
+    evento.preventDefault();
+    if (!estado.acessoEditando) return;
+    const corpo = {
+        acao: "acesso",
+        papeis: perfisMarcados(el.acessoPapeis),
+        admin: !!el.acessoAdmin?.checked,
+        ativo: el.acessoAtivo?.checked !== false,
+        ator: "painel",
+    };
+    try {
+        await enviarJSON(`/api/orq/usuarios/${estado.acessoEditando}/acao`, corpo);
+        el.dialogAcesso?.close();
+        carregar();
+    } catch (erro) {
+        alert("Falha ao salvar acesso: " + erro.message);
     }
 }
 
@@ -1235,39 +1384,62 @@ async function removerUsuario(id) {
     }
 }
 
-async function alternarAdmin(id, admin) {
+async function alternarAtivo(id, ativo) {
     try {
-        await enviarJSON(`/api/orq/usuarios/${id}/acao`, { acao: "admin", admin: !!admin, ator: "painel" });
+        await enviarJSON(`/api/orq/usuarios/${id}/acao`, { acao: "ativo", ativo: !!ativo, ator: "painel" });
         carregar();
     } catch (erro) {
         alert("Falha ao alterar: " + erro.message);
     }
 }
 
-async function criarPapel(evento) {
-    evento.preventDefault();
-    const permissoes = el.paPermissoes.value.split(",").map((s) => s.trim()).filter(Boolean);
-    try {
-        await enviarJSON("/api/orq/papeis", {
-            nome: el.paNome.value.trim(),
-            permissoes,
-            ator: "painel",
-        });
-        el.formPapel.reset();
-        carregar();
-    } catch (erro) {
-        alert("Falha ao salvar papel: " + erro.message);
-    }
+function abrirNovoPapel() {
+    estado.papelEditando = null;
+    el.formPapel.reset();
+    if (el.papelTitulo) el.papelTitulo.textContent = "Novo perfil";
+    if (el.paNome) el.paNome.readOnly = false;
+    renderSeletorPermissoes();
+    el.paPermissoes?.querySelectorAll("input[type=checkbox]").forEach((box) => { box.checked = false; });
+    el.dialogPapel?.showModal();
 }
 
-async function expurgarAuditoria() {
-    const dias = prompt("Expurgar eventos mais antigos que quantos dias?", "90");
-    if (dias === null) return;
+function editarPapel(nome) {
+    const papel = (estado.papeis || []).find((p) => p.nome === nome);
+    if (!papel) return;
+    estado.papelEditando = nome;
+    if (el.papelTitulo) el.papelTitulo.textContent = `Editar perfil ${nome}`;
+    if (el.paNome) {
+        el.paNome.value = nome;
+        el.paNome.readOnly = true;
+    }
+    if (el.paPerfil) el.paPerfil.value = "";
+    renderSeletorPermissoes();
+    el.paPermissoes?.querySelectorAll("input[type=checkbox]").forEach((box) => {
+        box.checked = (papel.permissoes || []).includes(box.value);
+    });
+    el.dialogPapel?.showModal();
+}
+
+async function salvarPapel(evento) {
+    evento.preventDefault();
+    const permissoes = permissoesMarcadas();
     try {
-        await enviarJSON("/api/orq/auditoria/expurgar", { dias: Number(dias) || 90, ator: "painel" });
+        if (estado.papelEditando) {
+            await enviarJSON(
+                `/api/orq/papeis/${encodeURIComponent(estado.papelEditando)}/permissoes`,
+                { permissoes, ator: "painel" }
+            );
+        } else {
+            await enviarJSON("/api/orq/papeis", {
+                nome: el.paNome.value.trim(),
+                permissoes,
+                ator: "painel",
+            });
+        }
+        el.dialogPapel?.close();
         carregar();
     } catch (erro) {
-        alert("Falha ao expurgar: " + erro.message);
+        alert("Falha ao salvar perfil: " + erro.message);
     }
 }
 
@@ -1325,7 +1497,7 @@ async function criarAsset(evento) {
 // ---------- filas (datapool) ----------
 function renderFilas() {
     if (!estado.filas.length) {
-        el.filas.innerHTML = `<tr><td colspan="5"><p class="vazio">Nenhuma fila criada.</p></td></tr>`;
+        el.filas.innerHTML = `<tr><td colspan="6"><p class="vazio">Nenhuma fila criada.</p></td></tr>`;
         return;
     }
     el.filas.innerHTML = estado.filas.map((f) => {
@@ -1548,10 +1720,12 @@ function nosDoDiagrama() {
     const passos = estado.fluxoRascunho || [];
     const primeiro = passos[0] || { x: 60 };
     const ultimo = passos[passos.length - 1] || { x: 60, y: 10 };
+    const temInicio = passos.some((p) => p.tipo === "inicio");
+    const temFim = passos.some((p) => p.tipo === "fim");
     return [
-        { nome: "Início", tipo: "inicio", x: primeiro.x ?? 60, y: 12 },
+        ...(temInicio ? [] : [{ nome: "Início", tipo: "inicio", x: primeiro.x ?? 60, y: 12 }]),
         ...passos.map((p, i) => ({ ...p, indice: i })),
-        { nome: "Fim", tipo: "fim", x: ultimo.x ?? 60, y: (ultimo.y ?? 10) + 104 },
+        ...(temFim ? [] : [{ nome: "Fim", tipo: "fim", x: ultimo.x ?? 60, y: (ultimo.y ?? 10) + 104 }]),
     ];
 }
 
@@ -1565,9 +1739,9 @@ function desenharLinhas() {
     for (let i = 0; i < nos.length - 1; i += 1) {
        const atual = nos[i];
         const proximo = nos[i + 1];
-        const x1 = (atual.x ?? 60) + 95;
-        const y1 = (atual.y ?? 60) + 58;
-        const x2 = (proximo.x ?? 60) + 95;
+        const x1 = (atual.x ?? 60) + (atual.tipo === "decisao" ? 75 : 95);
+        const y1 = (atual.y ?? 60) + (atual.tipo === "decisao" ? 75 : 58);
+        const x2 = (proximo.x ?? 60) + (proximo.tipo === "decisao" ? 75 : 95);
         const y2 = proximo.y ?? 60;
         const meio = (y1 + y2) / 2;
         tracos += `<path d="M ${x1} ${y1} C ${x1} ${meio}, ${x2} ${meio}, ${x2} ${y2}" marker-end="url(#pd-seta)"></path>`;
@@ -1584,7 +1758,7 @@ function desenharLinhas() {
 function renderCanvas() {
     if (!el.pdCanvas) return;
     const nos = nosDoDiagrama();
-    const altura = Math.max(300, ...nos.map((n) => (n.y ?? 0) + 96));
+    const altura = Math.max(300, ...nos.map((n) => (n.y ?? 0) + (n.tipo === "decisao" ? 160 : 96)));
     const largura = Math.max(560, ...nos.map((n) => (n.x ?? 0) + 240));
     el.pdCanvas.style.height = `${altura}px`;
     el.pdCanvas.innerHTML = `<svg class="pd-linhas" width="${largura}" height="${altura}"></svg>` +
@@ -1661,11 +1835,17 @@ function novoFluxo() {
     el.formFluxo.classList.remove("oculto");
     el.pdNome.value = "";
     el.pdExecucoes.value = "1";
-    el.pdProcesso.value = "";
+    if (el.pdTipo) el.pdTipo.value = "";
+    if (el.pdPessoas) el.pdPessoas.value = "";
+    if (el.pdTempo) el.pdTempo.value = "";
     el.pdDescricao.value = "";
     el.pdPassosTexto.value = "";
     el.pdErro.textContent = "";
-    renderPassosEditaveis([{ nome: "Abrir o sistema", tipo: "acao", detalhe: "" }]);
+    renderPassosEditaveis([
+        { nome: "Início", tipo: "inicio", detalhe: "" },
+        { nome: "Abrir o sistema", tipo: "acao", detalhe: "" },
+        { nome: "Fim", tipo: "fim", detalhe: "" },
+    ]);
     el.pdNome.focus();
 }
 
@@ -1676,7 +1856,9 @@ function editarFluxo(id) {
     el.formFluxo.classList.remove("oculto");
     el.pdNome.value = fluxo.nome || "";
     el.pdExecucoes.value = fluxo.execucoes_por_dia || 1;
-    el.pdProcesso.value = fluxo.processo_id ? String(fluxo.processo_id) : "";
+    if (el.pdTipo) el.pdTipo.value = fluxo.tipo || "";
+    if (el.pdPessoas) el.pdPessoas.value = fluxo.pessoas ?? "";
+    if (el.pdTempo) el.pdTempo.value = fluxo.tempo || "";
     el.pdDescricao.value = fluxo.descricao || "";
     el.pdPassosTexto.value = "";
     el.pdErro.textContent = "";
@@ -1700,8 +1882,10 @@ async function salvarFluxo(evento) {
     const corpo = {
         nome: el.pdNome.value.trim(),
         execucoes_por_dia: Number(el.pdExecucoes.value),
+        tipo: el.pdTipo ? el.pdTipo.value.trim() : "",
+        pessoas: el.pdPessoas && el.pdPessoas.value !== "" ? Number(el.pdPessoas.value) : 0,
+        tempo: el.pdTempo ? el.pdTempo.value.trim() : "",
         descricao: el.pdDescricao.value.trim(),
-        processo_id: el.pdProcesso.value ? Number(el.pdProcesso.value) : null,
         passos,
     };
     const editando = estado.fluxoEditando !== "novo" ? estado.fluxoEditando : null;
@@ -1719,6 +1903,7 @@ function renderFluxos() {
     el.fluxos.innerHTML = estado.fluxos.map((f) => `
         <tr>
             <td><strong>${escapar(f.nome)}</strong></td>
+            <td>${escapar(f.tipo || "—")}</td>
             <td>${Number(f.execucoes_por_dia) || 1}</td>
             <td>${Number(f.qtd_passos) || 0}</td>
             <td>v${Number(f.versao) || 1}</td>
@@ -1728,7 +1913,7 @@ function renderFluxos() {
                 <button type="button" class="acao" data-fluxo-acao="pdd" data-id="${f.id}">Ver PDD</button>
                 <button type="button" class="acao perigo" data-fluxo-acao="remover" data-id="${f.id}">Remover</button>
             </div></td>
-        </tr>`).join("") || `<tr><td colspan="6" class="vazio">Nenhum fluxo cadastrado. Clique em “+ Novo fluxo”.</td></tr>`;
+        </tr>`).join("") || `<tr><td colspan="7" class="vazio">Nenhum fluxo cadastrado. Clique em “+ Novo fluxo”.</td></tr>`;
 }
 
 async function abrirPdd(id) {
@@ -1774,14 +1959,6 @@ function preencherProcessosSelects() {
         el.fiProcesso.innerHTML = `<option value="">sem executor</option>` + opcoes;
         el.fiProcesso.dataset.pronto = "1";
     }
-    if (el.pdProcesso) {
-        const vinculado = el.pdProcesso.value;
-        el.pdProcesso.innerHTML = `<option value="">Nenhuma</option>` + opcoes;
-        if (vinculado && estado.processos.some((p) => String(p.id) === String(vinculado))) {
-            el.pdProcesso.value = vinculado;
-        }
-    }
-
     if (el.trMaquina) {
         const maquinaSel = el.trMaquina.value;
         el.trMaquina.innerHTML = `<option value="">Qualquer máquina</option>` + estado.maquinas
@@ -1844,8 +2021,15 @@ el.formAsset.addEventListener("submit", criarAsset);
 el.formFila.addEventListener("submit", criarFila);
 el.formFilaProcessos.addEventListener("submit", salvarProcessosFila);
 el.formItens.addEventListener("submit", adicionarItens);
-el.formUsuario.addEventListener("submit", criarUsuario);
-el.formPapel.addEventListener("submit", criarPapel);
+el.formUsuario?.addEventListener("submit", criarUsuario);
+el.formAcesso?.addEventListener("submit", salvarAcesso);
+el.formPapel?.addEventListener("submit", salvarPapel);
+if (el.paPerfil) el.paPerfil.addEventListener("change", aplicarPerfilPapel);
+if (el.btnNovoUsuario) el.btnNovoUsuario.addEventListener("click", abrirNovoUsuario);
+if (el.btnNovoPapel) el.btnNovoPapel.addEventListener("click", abrirNovoPapel);
+document.querySelectorAll("[data-fechar]").forEach((botao) => {
+    botao.addEventListener("click", () => document.getElementById(botao.dataset.fechar)?.close());
+});
 el.formMaquina.addEventListener("submit", criarMaquina);
 if (el.dispositivos) {
     el.dispositivos.addEventListener("click", (ev) => {
@@ -1867,7 +2051,6 @@ trocarAba(TITULOS[abaInicial] ? abaInicial : "jobs");
 el.formLogin.addEventListener("submit", entrar);
 if (el.btnSair) el.btnSair.addEventListener("click", sair);
 if (el.btnSairTopo) el.btnSairTopo.addEventListener("click", sair);
-el.btnExpurgar.addEventListener("click", expurgarAuditoria);
 if (el.jobFechar) el.jobFechar.addEventListener("click", () => {
     estado.jobAberto = null;
     el.dialogJob.close();
@@ -1956,6 +2139,19 @@ if (el.pddBaixar) el.pddBaixar.addEventListener("click", () => {
     link.href = `/api/orq/fluxos/${estado.pddAtual}/pdd?formato=md`;
     link.download = `PDD-${estado.pddAtual}.md`;
     link.click();
+});
+if (el.auditLimite) el.auditLimite.addEventListener("change", () => {
+    estado.auditoriaLimite = Number(el.auditLimite.value) || 30;
+    estado.auditoriaPagina = 1;
+    renderAuditoria();
+});
+if (el.auditAnterior) el.auditAnterior.addEventListener("click", () => {
+    estado.auditoriaPagina = Math.max(1, estado.auditoriaPagina - 1);
+    renderAuditoria();
+});
+if (el.auditProximo) el.auditProximo.addEventListener("click", () => {
+    estado.auditoriaPagina += 1;
+    renderAuditoria();
 });
 atualizarTipoTrigger();
 

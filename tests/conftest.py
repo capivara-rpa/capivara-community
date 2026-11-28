@@ -15,6 +15,7 @@ os.environ["VAULT_CHAVE"] = "senha-de-teste-do-template"
 os.environ["VAULT_ARQUIVO_CHAVE"] = os.path.join(_DIRETORIO_TMP, "vault.key")
 os.environ["PASTA_ROBOS"] = os.path.join(_DIRETORIO_TMP, "robos")
 os.environ["HEADLESS"] = "true"
+os.environ.setdefault("LAGOA_AUTH", "false")
 
 import pytest  # noqa: E402
 

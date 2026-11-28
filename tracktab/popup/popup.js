@@ -24,43 +24,45 @@ async function executeInContent(code) {
   try {
     const results = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
-      func: () => window.__tracktabResult,
+      func: () => window.__capivaraCapturaResult,
     });
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       world: 'MAIN',
-      func: (cmd) => { window.__tracktabCommand = cmd; },
+      func: (cmd) => { window.__capivaraCapturaCommand = cmd; },
       args: [code],
     });
     await new Promise(r => setTimeout(r, 50));
     const res = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: () => {
-        const r = window.__tracktabResult;
-        window.__tracktabResult = undefined;
+        const r = window.__capivaraCapturaResult;
+        window.__capivaraCapturaResult = undefined;
         return r;
       },
     });
     return res?.[0]?.result ?? null;
   } catch (e) {
-    console.error('TrackTab execute error:', e);
+    console.error('Capivara Captura execute error:', e);
     return null;
   }
 }
 
-async function sendMessageToContent(message) {
+async function sendMessageToContent(message, opcoes = {}) {
   const tab = await getActiveTab();
   if (!tab) return null;
+  const frameId = opcoes.frameId ?? 0;
+  const alvo = { tabId: tab.id, frameIds: [frameId] };
   try {
-    return await chrome.tabs.sendMessage(tab.id, message);
+    return await chrome.tabs.sendMessage(tab.id, message, { frameId });
   } catch {
     try {
-      const results = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
+      await chrome.scripting.executeScript({
+        target: alvo,
         files: ['content/content.js'],
       });
       await new Promise(r => setTimeout(r, 100));
-      return await chrome.tabs.sendMessage(tab.id, message);
+      return await chrome.tabs.sendMessage(tab.id, message, { frameId });
     } catch {
       return null;
     }
@@ -74,7 +76,7 @@ function updateUI(recording, elements = []) {
     btnStart.disabled = true;
     btnStop.disabled = false;
     statusDot.classList.add('recording');
-    statusText.textContent = 'Gravando... clique nos elementos';
+    statusText.textContent = 'Capturando... clique nos elementos';
     counterSection.style.display = 'flex';
     elementsList.style.display = 'block';
     exportSection.style.display = 'none';
@@ -84,7 +86,7 @@ function updateUI(recording, elements = []) {
     statusDot.classList.remove('recording');
     statusText.textContent = elements.length > 0
       ? `${elements.length} elemento(s) capturado(s)`
-      : 'Pronto para gravar';
+      : 'Pronto para capturar';
     counterSection.style.display = elements.length > 0 ? 'flex' : 'none';
     elementsList.style.display = elements.length > 0 ? 'block' : 'none';
     exportSection.style.display = elements.length > 0 ? 'flex' : 'none';
@@ -107,18 +109,15 @@ function renderElements(elements) {
 }
 
 btnStart.addEventListener('click', async () => {
-  let response = await sendMessageToContent({ type: 'START_RECORDING' });
-  if (response?.success) {
-    await chrome.storage.session.set({ isRecording: true });
-    updateUI(true, []);
-  } else {
-    statusText.textContent = 'Erro ao iniciar. Recarregue a página.';
-  }
+  await chrome.storage.session.set({ isRecording: true });
+  await sendMessageToContent({ type: 'START_RECORDING' });
+  const response = await sendMessageToContent({ type: 'GET_STATUS' });
+  updateUI(response?.isRecording !== false, []);
 });
 
 btnStop.addEventListener('click', async () => {
-  const response = await sendMessageToContent({ type: 'STOP_RECORDING' });
   await chrome.storage.session.set({ isRecording: false });
+  const response = await sendMessageToContent({ type: 'STOP_RECORDING' });
   const elements = response?.elements || [];
   updateUI(false, elements);
 });
@@ -152,7 +151,7 @@ btnExportJson.addEventListener('click', async () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `tracktab-${Date.now()}.json`;
+  a.download = `capivara-captura-${Date.now()}.json`;
   a.click();
   URL.revokeObjectURL(url);
 });
@@ -163,7 +162,7 @@ btnExportTxt.addEventListener('click', async () => {
   if (elements.length === 0) return;
 
   const tab = await getActiveTab();
-  const header = `TrackTab Export\nPage: ${tab?.url || ''}\nTitle: ${tab?.title || ''}\nDate: ${new Date().toISOString()}\n${'='.repeat(100)}\n`;
+  const header = `Capivara Captura\nPage: ${tab?.url || ''}\nTitle: ${tab?.title || ''}\nDate: ${new Date().toISOString()}\n${'='.repeat(100)}\n`;
   const colHeaders = `${'Elemento'.padEnd(30)}| ${'Full XPath'.padEnd(40)}| ${'Relative XPath'.padEnd(35)}| Custom Path`;
   const separator = `${'-'.repeat(30)}| ${'-'.repeat(40)}| ${'-'.repeat(35)}| ${'-'.repeat(40)}`;
 
@@ -176,7 +175,7 @@ btnExportTxt.addEventListener('click', async () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `tracktab-${Date.now()}.txt`;
+  a.download = `capivara-captura-${Date.now()}.txt`;
   a.click();
   URL.revokeObjectURL(url);
 });

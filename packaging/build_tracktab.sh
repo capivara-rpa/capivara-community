@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Empacota a extensão TrackTab (tracktab/) num .zip pronto para a Chrome Web Store.
+# Empacota a extensão Capivara Captura (pasta técnica tracktab/) num .zip pronto para a Chrome Web Store.
 #
 #   bash packaging/build_tracktab.sh                 # gera dist/tracktab.zip
 #   bash packaging/build_tracktab.sh /tmp/tracktab.zip
@@ -27,6 +27,6 @@ rm -f "$SAIDA"
 ( cd "$ROOT/tracktab" && zip -r -X "$SAIDA" . \
     -x '*.DS_Store' -x '__MACOSX/*' -x 'PUBLICAR.md' -x 'README.md' >/dev/null )
 
-echo "✅ Extensão empacotada em: $SAIDA"
+echo "✅ Capivara Captura empacotada em: $SAIDA"
 echo "   Publique em: https://chrome.google.com/webstore/devconsole"
 echo "   Passo a passo: tracktab/PUBLICAR.md"

@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="estilo.css">
+    <link rel="stylesheet" href="estilo.css?v=6">
 </head>
 <body>
     <div class="layout">
@@ -49,10 +49,10 @@
                             <span class="nav-texto">Automações</span>
                         </button>
                     </li>
-                    <li class="nav-item" data-secao="bpmn">
-                        <button type="button" class="nav-link" data-secao="bpmn">
+                    <li class="nav-item" data-secao="documentos">
+                        <button type="button" class="nav-link" data-secao="documentos">
                             <span class="nav-icon">⎇</span>
-                            <span class="nav-texto">Fluxos &amp; PDD</span>
+                            <span class="nav-texto">Documentos</span>
                         </button>
                     </li>
                     <li class="nav-item" data-secao="filas">
@@ -67,19 +67,16 @@
                             <span class="nav-texto">Credenciais</span>
                         </button>
                     </li>
-                    <li class="nav-item" data-secao="acessos">
-                        <button type="button" class="nav-link" data-secao="acessos">
-                            <span class="nav-icon">👤</span>
-                            <span class="nav-texto">Acessos</span>
+                    <li class="nav-item" data-secao="auditoria">
+                        <button type="button" class="nav-link" data-secao="auditoria">
+                            <span class="nav-icon">◎</span>
+                            <span class="nav-texto">Auditoria</span>
                         </button>
                     </li>
-                </ul>
-                <p class="nav-titulo">Sistema</p>
-                <ul class="nav-lista">
-                    <li class="nav-item" data-secao="monitor">
-                        <button type="button" class="nav-link" data-secao="monitor">
-                            <span class="nav-icon">▥</span>
-                            <span class="nav-texto">Monitor</span>
+                    <li class="nav-item" data-secao="usuarios">
+                        <button type="button" class="nav-link" data-secao="usuarios">
+                            <span class="nav-icon">👤</span>
+                            <span class="nav-texto">Usuários</span>
                         </button>
                     </li>
                 </ul>
@@ -202,39 +199,39 @@
 
                                 <form class="form-agendamento oculto" id="form-trigger">
                                     <div class="campo">
-                                        <label for="tr-processo">Automação (robô)</label>
-                                        <select id="tr-processo" required></select>
+                                        <label for="tr-processo">Robô</label>
+                                        <select id="tr-processo" required style="min-width:180px"></select>
                                     </div>
                                     <div class="campo">
-                                        <label for="tr-maquina">Onde executar</label>
-                                        <select id="tr-maquina"><option value="">Qualquer máquina</option></select>
+                                        <label for="tr-maquina">Onde</label>
+                                        <select id="tr-maquina" style="min-width:150px"><option value="">Qualquer máquina</option></select>
                                     </div>
                                     <div class="campo">
-                                        <label for="tr-tag">Requisito (tag) — opcional</label>
-                                        <input type="text" id="tr-tag" placeholder="ex.: sp, financeiro">
+                                        <label for="tr-tag">Tag</label>
+                                        <input type="text" id="tr-tag" placeholder="opcional" style="width:120px">
                                     </div>
                                     <div class="campo">
-                                        <label for="tr-tipo">Recorrência</label>
-                                        <select id="tr-tipo">
+                                        <label for="tr-tipo">Tipo</label>
+                                        <select id="tr-tipo" style="width:150px">
                                             <option value="intervalo">A cada…</option>
-                                            <option value="diario">Diariamente às…</option>
-                                            <option value="cron">Cron (avançado)…</option>
+                                            <option value="diario">Diário às…</option>
+                                            <option value="cron">Cron…</option>
                                         </select>
                                     </div>
                                     <div class="campo">
-                                        <label for="tr-intervalo">Intervalo (min)</label>
-                                        <input type="number" id="tr-intervalo" min="1" value="30">
+                                        <label for="tr-intervalo">Intervalo</label>
+                                        <input type="number" id="tr-intervalo" min="1" value="30" style="width:100px">
                                     </div>
                                     <div class="campo oculto" id="campo-hora">
-                                        <label for="tr-hora">Horário</label>
-                                        <input type="time" id="tr-hora" value="06:00">
+                                        <label for="tr-hora">Hora</label>
+                                        <input type="time" id="tr-hora" value="06:00" style="width:120px">
                                     </div>
                                     <div class="campo oculto" id="campo-cron">
-                                        <label for="tr-cron">Expressão cron</label>
-                                        <input type="text" id="tr-cron" placeholder="*/15 9-18 * * seg-sex">
+                                        <label for="tr-cron">Cron</label>
+                                        <input type="text" id="tr-cron" placeholder="*/15 9-18 * * seg-sex" style="width:220px">
                                     </div>
                                     <div class="campo campo-largo">
-                                        <label>Dias da semana</label>
+                                        <label>Dias</label>
                                         <div class="dias-semana" id="tr-dias">
                                             <label class="dia"><input type="checkbox" value="1" checked> Seg</label>
                                             <label class="dia"><input type="checkbox" value="2" checked> Ter</label>
@@ -246,10 +243,10 @@
                                         </div>
                                     </div>
                                     <div class="campo campo-largo">
-                                        <label>Executar em</label>
+                                        <label>Incluir também</label>
                                         <div class="dias-semana">
-                                            <label class="caixa"><input type="checkbox" id="tr-fins" checked> Fins de semana</label>
-                                            <label class="caixa"><input type="checkbox" id="tr-feriados" checked> Feriados nacionais</label>
+                                            <label class="caixa"><input type="checkbox" id="tr-fins" checked> fins de semana</label>
+                                            <label class="caixa"><input type="checkbox" id="tr-feriados" checked> feriados</label>
                                         </div>
                                     </div>
                                     <div class="campo campo-botao">
@@ -312,10 +309,10 @@
                                 </div>
                             </div>
 
-                            <div class="painel-aba oculto" id="aba-bpmn">
+                            <div class="painel-aba oculto" id="aba-documentos">
                                 <div class="barra-acoes">
-                                    <button type="button" class="botao-primario" id="btn-novo-fluxo">+ Novo fluxo</button>
-                                    <span class="dica">Desenhe o fluxo do robô e gere o PDD (documento de definição de processo).</span>
+                                    <button type="button" class="botao-primario" id="btn-novo-fluxo">+ Novo documento</button>
+                                    <span class="dica">Descreva o processo, desenhe o fluxo e gere o PDD.</span>
                                 </div>
 
                                 <form class="form-agendamento oculto" id="form-fluxo">
@@ -324,12 +321,20 @@
                                         <input type="text" id="pd-nome" placeholder="ex.: Conciliação de boletos" required style="min-width:260px">
                                     </div>
                                     <div class="campo">
-                                        <label for="pd-execucoes">Quantas vezes o robô roda por dia?</label>
-                                        <input type="number" id="pd-execucoes" min="1" max="100000" value="1" required style="width:150px">
+                                        <label for="pd-tipo">Tipo de processo</label>
+                                        <input type="text" id="pd-tipo" placeholder="ex.: financeiro, atendimento" style="min-width:180px">
                                     </div>
                                     <div class="campo">
-                                        <label for="pd-processo">Automação vinculada (opcional)</label>
-                                        <select id="pd-processo" style="min-width:220px"><option value="">Nenhuma</option></select>
+                                        <label for="pd-execucoes">Execuções por dia</label>
+                                        <input type="number" id="pd-execucoes" min="1" max="100000" value="1" required style="width:130px">
+                                    </div>
+                                    <div class="campo">
+                                        <label for="pd-pessoas">Pessoas hoje</label>
+                                        <input type="number" id="pd-pessoas" min="0" max="100000" placeholder="qtd." style="width:120px">
+                                    </div>
+                                    <div class="campo">
+                                        <label for="pd-tempo">Tempo hoje</label>
+                                        <input type="text" id="pd-tempo" placeholder="ex.: 40 min" style="width:150px">
                                     </div>
                                     <div class="campo campo-largo">
                                         <label for="pd-descricao">Objetivo / visão geral</label>
@@ -344,17 +349,19 @@
                                         <label>Passos do fluxo</label>
                                         <div class="pd-passos" id="pd-passos"></div>
                                         <div class="pd-adicionar">
+                                            <button type="button" class="botao-secundario" data-pd-tipo="inicio">+ Início</button>
                                             <button type="button" class="botao-secundario" data-pd-tipo="acao">+ Ação</button>
                                             <button type="button" class="botao-secundario" data-pd-tipo="decisao">+ Decisão</button>
                                             <button type="button" class="botao-secundario" data-pd-tipo="excecao">+ Exceção</button>
+                                            <button type="button" class="botao-secundario" data-pd-tipo="fim">+ Fim</button>
                                         </div>
                                     </div>
                                     <div class="campo campo-largo">
-                                        <label>Diagrama (arraste os nós para organizar)</label>
+                                        <label>Diagrama (arraste os nós; decisões em triângulo)</label>
                                         <div class="pd-canvas" id="pd-canvas"></div>
                                     </div>
                                     <div class="campo campo-botao">
-                                        <button type="submit" class="botao-primario">Salvar fluxo</button>
+                                        <button type="submit" class="botao-primario">Salvar documento</button>
                                         <button type="button" class="botao-secundario" id="pd-cancelar">Cancelar</button>
                                         <span class="erro-login" id="pd-erro"></span>
                                     </div>
@@ -363,7 +370,7 @@
                                 <div class="tabela-envolucro">
                                     <table class="tabela">
                                         <thead>
-                                            <tr><th>Processo</th><th>Exec./dia</th><th>Passos</th>
+                                            <tr><th>Processo</th><th>Tipo</th><th>Exec./dia</th><th>Passos</th>
                                                 <th>Versão</th><th>Atualizado</th><th>Ações</th></tr>
                                         </thead>
                                         <tbody id="corpo-fluxos"></tbody>
@@ -371,12 +378,7 @@
                                 </div>
                             </div>
 
-                            <div class="painel-aba oculto" id="aba-monitor">
-                                <iframe id="frame-monitor" class="frame-monitor" title="Monitor de execuções"
-                                    loading="lazy"></iframe>
-                            </div>
-
-            <div class="painel-aba oculto" id="aba-filas">
+                            <div class="painel-aba oculto" id="aba-filas">
                 <form class="form-linha" id="form-fila">
                     <input type="text" id="fi-nome" placeholder="nome (ex.: clientes)" required style="width:180px">
                     <select id="fi-processo"></select>
@@ -385,9 +387,9 @@
                 </form>
 
                 <div class="tabela-envolucro">
-                    <table class="tabela">
+                    <table class="tabela" id="tabela-filas">
                         <thead>
-                            <tr><th>Fila</th><th>Processo executor</th><th>Itens</th><th>Progresso</th><th></th></tr>
+                            <tr><th>#</th><th>Fila</th><th>Processo executor</th><th>Itens</th><th>Progresso</th><th>Ações</th></tr>
                         </thead>
                         <tbody id="corpo-filas"></tbody>
                     </table>
@@ -443,10 +445,26 @@
                         <tbody id="corpo-assets"></tbody>
                     </table>
                 </div>
-                <h4 class="subtitulo">Auditoria recente
-                    <button type="button" class="botao-secundario" id="btn-expurgar">Expurgar antigos</button>
+            </div>
+
+            <div class="painel-aba oculto" id="aba-auditoria">
+                <div class="barra-acoes">
+                    <h4 class="subtitulo">Histórico de ações</h4>
+                    <div class="paginacao">
+                        <label class="rotulo-inline">por página
+                            <select id="audit-limite">
+                                <option value="10">10</option>
+                                <option value="30" selected>30</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </label>
+                        <button type="button" class="botao-secundario" id="audit-anterior" title="Página anterior">‹</button>
+                        <span id="audit-info" class="dica">0 de 0</span>
+                        <button type="button" class="botao-secundario" id="audit-proximo" title="Próxima página">›</button>
+                    </div>
                     <a class="botao-secundario" id="link-csv" href="/api/orq/auditoria/exportar" download>Exportar CSV</a>
-                </h4>
+                </div>
                 <div class="tabela-envolucro">
                     <table class="tabela">
                         <thead>
@@ -457,56 +475,49 @@
                 </div>
             </div>
 
-                            <div class="painel-aba oculto" id="aba-acessos">
-                                <form class="form-linha" id="form-usuario">
-                                    <input type="text" id="us-nome" placeholder="nome" required style="width:130px">
-                                    <input type="email" id="us-email" placeholder="email" required style="width:180px">
-                                    <input type="password" id="us-senha" placeholder="senha" required style="width:130px">
-                                    <input type="text" id="us-papeis" placeholder="papéis (ex.: admin,operador)" style="width:200px">
-                                    <label class="caixa"><input type="checkbox" id="us-admin"> admin</label>
-                                    <button type="submit" class="botao-primario">Criar usuário</button>
-                                </form>
+                            <div class="painel-aba oculto" id="aba-usuarios">
+                                <div class="barra-acoes">
+                                    <div>
+                                        <h4 class="subtitulo">Usuários</h4>
+                                        <span class="dica">Quem pode entrar na Lagoa e o que cada pessoa pode fazer.</span>
+                                    </div>
+                                    <div class="acoes">
+                                        <button type="button" class="botao-primario" id="btn-novo-usuario">+ Novo usuário</button>
+                                        <button type="button" class="botao-secundario" id="btn-novo-papel">+ Novo perfil</button>
+                                    </div>
+                                </div>
 
                                 <div class="tabela-envolucro">
                                     <table class="tabela">
                                         <thead>
-                                            <tr><th>Nome</th><th>E-mail</th><th>Papéis</th><th>Permissões</th><th>Admin</th><th></th></tr>
+                                            <tr>
+                                                <th>Pessoa</th>
+                                                <th>Perfis</th>
+                                                <th>Acesso</th>
+                                                <th>Status</th>
+                                                <th></th>
+                                            </tr>
                                         </thead>
                                         <tbody id="corpo-usuarios"></tbody>
                                     </table>
                                 </div>
 
-                                <h4 class="subtitulo">Papéis</h4>
-                                <form class="form-linha" id="form-papel">
-                                    <input type="text" id="pa-nome" placeholder="nome do papel" required style="width:150px">
-                                    <input type="text" id="pa-permissoes" placeholder="permissoes separadas por vírgula" style="width:340px">
-                                    <button type="submit" class="botao-primario">Salvar papel</button>
-                                </form>
+                                <div class="barra-acoes">
+                                    <div>
+                                        <h4 class="subtitulo">Perfis de acesso</h4>
+                                        <span class="dica">Um perfil reúne várias permissões. Edite um perfil para mudar todos os usuários que o usam.</span>
+                                    </div>
+                                </div>
                                 <div class="tabela-envolucro">
                                     <table class="tabela">
-                                        <thead><tr><th>Papel</th><th>Permissões</th></tr></thead>
+                                        <thead>
+                                            <tr><th>Perfil</th><th>Permissões</th><th></th></tr>
+                                        </thead>
                                         <tbody id="corpo-papeis"></tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <div class="painel-lateral">
-                    <div class="card">
-                        <div class="card-cabecalho">
-                            <h3 class="card-titulo">Máquinas</h3>
-                            <span id="qtd-maquinas" class="contador"></span>
-                        </div>
-                        <div class="card-corpo lista" id="lista-maquinas"><p class="vazio">Carregando…</p></div>
-                    </div>
-                    <div class="card">
-                        <div class="card-cabecalho">
-                            <h3 class="card-titulo">Processos</h3>
-                            <span class="contador" id="qtd-processos"></span>
-                        </div>
-                        <div class="card-corpo lista" id="lista-processos"></div>
                     </div>
                 </div>
             </div>
@@ -518,20 +529,123 @@
         </div>
     </div>
 
-    <dialog id="dialog-login" class="modal">
-        <form method="dialog" id="form-login">
-            <h3>Entrar na Lagoa</h3>
-            <label>E-mail
-                <input type="email" id="login-email" required autocomplete="username">
-            </label>
-            <label>Senha
-                <input type="password" id="login-senha" required autocomplete="current-password">
-            </label>
-            <p class="erro-login" id="login-erro"></p>
+    <dialog id="dialog-usuario" class="modal modal-larga">
+        <form id="form-usuario" class="form-acesso">
+            <div class="modal-topo">
+                <h3 id="usuario-titulo">Novo usuário</h3>
+                <button type="button" class="acao" data-fechar="dialog-usuario">Fechar</button>
+            </div>
+            <div class="grade-campos-acesso">
+                <label>Nome completo
+                    <input type="text" id="us-nome" placeholder="ex.: Ana Souza" required>
+                </label>
+                <label>E-mail
+                    <input type="email" id="us-email" placeholder="ana@empresa.com" required>
+                </label>
+                <label>Senha inicial
+                    <input type="password" id="us-senha" placeholder="mínimo de 6 caracteres" minlength="6" required>
+                </label>
+            </div>
+            <fieldset class="bloco-acesso">
+                <legend>Acesso deste usuário</legend>
+                <label class="caixa acesso-admin">
+                    <input type="checkbox" id="us-admin">
+                    <span><strong>Administrador</strong><span class="obs">Acesso total à Lagoa</span></span>
+                </label>
+                <div>
+                    <span class="rotulo-campo">Perfis</span>
+                    <div class="permissoes perfis-usuario" id="us-papeis-lista"></div>
+                    <span class="dica">Opcional. Marque um ou mais perfis para limitar o acesso.</span>
+                </div>
+            </fieldset>
             <div class="modal-acoes">
-                <button type="submit" class="botao-primario">Entrar</button>
+                <button type="button" class="botao-secundario" data-fechar="dialog-usuario">Cancelar</button>
+                <button type="submit" class="botao-primario">Criar usuário</button>
             </div>
         </form>
+    </dialog>
+
+    <dialog id="dialog-acesso" class="modal modal-larga">
+        <form id="form-acesso" class="form-acesso">
+            <div class="modal-topo">
+                <div>
+                    <h3 id="acesso-titulo">Editar acesso</h3>
+                    <span class="dica" id="acesso-email"></span>
+                </div>
+                <button type="button" class="acao" data-fechar="dialog-acesso">Fechar</button>
+            </div>
+            <fieldset class="bloco-acesso">
+                <legend>Acesso</legend>
+                <label class="caixa acesso-admin">
+                    <input type="checkbox" id="acesso-admin">
+                    <span><strong>Administrador</strong><span class="obs">Acesso total à Lagoa</span></span>
+                </label>
+                <label class="caixa">
+                    <input type="checkbox" id="acesso-ativo" checked>
+                    <span><strong>Usuário ativo</strong><span class="obs">Desmarque para bloquear o login</span></span>
+                </label>
+            </fieldset>
+            <fieldset class="bloco-acesso">
+                <legend>Perfis</legend>
+                <div class="permissoes perfis-usuario" id="acesso-papeis"></div>
+                <span class="dica">Selecione os perfis deste usuário. Administradores já têm acesso total.</span>
+            </fieldset>
+            <div class="modal-acoes">
+                <button type="button" class="botao-secundario" data-fechar="dialog-acesso">Cancelar</button>
+                <button type="submit" class="botao-primario">Salvar acesso</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="dialog-papel" class="modal modal-larga">
+        <form id="form-papel" class="form-acesso">
+            <div class="modal-topo">
+                <h3 id="papel-titulo">Novo perfil</h3>
+                <button type="button" class="acao" data-fechar="dialog-papel">Fechar</button>
+            </div>
+            <div class="grade-campos-acesso">
+                <label>Nome do perfil
+                    <input type="text" id="pa-nome" placeholder="ex.: Operador de filas" required>
+                </label>
+                <label>Começar de um perfil pronto
+                    <select id="pa-perfil"><option value="">Personalizado</option></select>
+                </label>
+            </div>
+            <fieldset class="bloco-acesso">
+                <legend>Permissões deste perfil</legend>
+                <div class="permissoes" id="pa-permissoes"></div>
+            </fieldset>
+            <div class="modal-acoes">
+                <button type="button" class="botao-secundario" data-fechar="dialog-papel">Cancelar</button>
+                <button type="submit" class="botao-primario">Salvar perfil</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="dialog-login" class="tela-login">
+        <div class="tela-login-interno">
+            <div class="tela-login-marca">
+                <img src="img/logo-capivara.svg" alt="Capivara" width="52" height="52">
+                <div>
+                    <strong>Capivara</strong>
+                    <span>Lagoa</span>
+                </div>
+            </div>
+            <form id="form-login" class="login-cartao">
+                <span class="login-selo">Acesso seguro</span>
+                <h1>Bem-vindo à Lagoa</h1>
+                <p>Entre para orquestrar robôs, filas, agendamentos e credenciais.</p>
+                <label>E-mail
+                    <input type="email" id="login-email" required autocomplete="username" autofocus>
+                </label>
+                <label>Senha
+                    <input type="password" id="login-senha" required autocomplete="current-password">
+                </label>
+                <p class="erro-login" id="login-erro"></p>
+                <button type="submit" class="botao-primario">Entrar</button>
+            </form>
+            <p class="tela-login-rodape">Onde a mágica das capivaras acontece.</p>
+        </div>
     </dialog>
 
     <dialog id="dialog-variaveis" class="modal">
@@ -598,6 +712,6 @@
         </form>
     </dialog>
 
-    <script src="painel.js"></script>
+    <script src="painel.js?v=6"></script>
 </body>
 </html>

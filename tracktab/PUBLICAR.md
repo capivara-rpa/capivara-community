@@ -1,7 +1,10 @@
-# Publicar a TrackTab na Chrome Web Store (1 clique)
+# Publicar a Capivara Captura na Chrome Web Store (1 clique)
 
 Assim que a extensão estiver publicada, qualquer usuário instala com **um clique**
 — sem precisar baixar o repositório nem usar o "modo desenvolvedor".
+
+A pasta técnica continua `tracktab/` por compatibilidade com os scripts e com o
+módulo `core.rpa.tracktab`; o **nome público** da extensão é **Capivara Captura**.
 
 ## 1. Empacotar
 
@@ -21,8 +24,8 @@ O `.zip` já sai com o `manifest.json` na raiz (exigência da loja).
 
 1. **New item** → arraste `dist/tracktab.zip`.
 2. Preencha a listagem:
-   - **Nome**: `TrackTab`
-   - **Descrição curta**: `Gravador de elementos: capture XPath e dados com um clique.`
+   - **Nome**: `Capivara Captura`
+   - **Descrição curta**: `Capture XPath e seletores de elementos com um clique.`
    - **Categoria**: `Developer Tools`
    - **Idioma**: Português (Brasil)
 3. **Ícones**: use 128×128 (já está em `tracktab/icons/icon128.png`).
@@ -34,7 +37,7 @@ A loja exige justificativa para cada permissão. Use algo como:
 
 | Permissão | Motivo |
 |---|---|
-| `activeTab` / `scripting` | Ler os elementos da aba ativa quando o usuário clica em "Capturar". |
+| `activeTab` / `scripting` | Ler os elementos da aba ativa quando o usuário clica em "Iniciar captura". |
 | `storage` | Guardar as capturas localmente no navegador. |
 | `content_scripts` (all_urls) | Destacar o elemento sob o cursor durante a captura. |
 | **Não coleta dados** | Marcar "This item does not collect user data": nada sai do navegador. |
@@ -47,11 +50,11 @@ Política de privacidade: pode ser um texto simples explicando que tudo é local
 1. **Submit for review**. A revisão costuma levar de algumas horas a poucos dias.
 2. Aprovado → o item ganha uma URL pública:
    `https://chrome.google.com/webstore/detail/<ID>`
-3. Coloque esse link no README do template (botão "Instalar TrackTab").
+3. Coloque esse link no README do template (botão "Instalar Capivara Captura").
 
 ## 6. Atualizações
 
-1. Suba a `version` em `tracktab/manifest.json` (ex.: `1.0.0` → `1.0.1`).
+1. Suba a `version` em `tracktab/manifest.json` (ex.: `1.1.0` → `1.1.1`).
 2. `bash packaging/build_tracktab.sh`.
 3. **Package → Upload new package** e envie de novo.
 

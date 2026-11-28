@@ -2,7 +2,7 @@
 # Instalador macOS "tudo empacotado" — NÃO exige Python na máquina.
 #
 # Roda de dentro do pacote gerado por `packaging/build_mac.sh` (pasta que contém
-# os binários lagoa / robo_agente, a extensão tracktab/ e o .env.example):
+# os binários lagoa / robo_agente, a extensão tracktab/ (Capivara Captura) e o .env.example):
 #
 #   ./instalar_mac.sh                     # instala em ~/RPA Brasil e sobe tudo
 #   ./instalar_mac.sh --token segredo
@@ -12,7 +12,7 @@
 #   ./instalar_mac.sh --remover
 #
 # Instala Lagoa + Agente como serviços (LaunchAgents), para subirem
-# sozinhos no login e reconectarem. A extensão TrackTab fica em <DEST>/tracktab
+# sozinhos no login e reconectarem. A Capivara Captura fica em <DEST>/tracktab
 # (para carregar como "descompactada" enquanto não estiver na Chrome Web Store).
 set -euo pipefail
 
@@ -224,7 +224,7 @@ echo "🎉 Pronto! A Lagoa sobe sozinha no login."
 echo "   Painel:        ${LAGOA}"
 echo "   Trace:         ${LAGOA}/monitor/"
 echo "   Dados/logs:    ${DADOS}"
-echo "   Extensão:      carregue '${DEST}/tracktab' em chrome://extensions (Modo dev)"
+echo "   Extensão:      Capivara Captura — carregue '${DEST}/tracktab' em chrome://extensions (Modo dev)"
 echo "   Status:        launchctl print ${DOMAIN}/${LABEL_CR}"
 echo "   Remover:       $ORIGEM/instalar_mac.sh --remover"
 echo ""
