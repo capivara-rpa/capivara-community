@@ -33,7 +33,12 @@ from core.control_room.atualizador import iniciar_atualizador, verificar_atualiz
 from core.control_room.banco import iniciar_banco as iniciar_banco_orq
 from core.monitor.banco import iniciar_banco as iniciar_banco_monitor
 from core.monitor.servidor import PASTA_ESTATICO as PASTA_MONITOR
-from core.monitor.servidor import ManipuladorPainel, ThreadingHTTPServer, _aplicar_tls
+from core.monitor.servidor import (
+    ManipuladorPainel,
+    ThreadingHTTPServer,
+    _aplicar_tls,
+    _pasta_estatica_persistente,
+)
 from settings.parametros import (
     ABRIR_PAINEL,
     AUTO_ATUALIZAR,
@@ -46,7 +51,9 @@ from settings.parametros import (
     TLS_CHAVE,
 )
 
-PASTA_ESTATICO = Path(__file__).resolve().parent / "estatico"
+PASTA_ESTATICO = _pasta_estatica_persistente(
+    Path(__file__).resolve().parent / "estatico", "lagoa"
+)
 COOKIE_SESSAO = "sessao"
 
 

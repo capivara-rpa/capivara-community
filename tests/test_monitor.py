@@ -77,6 +77,26 @@ def test_revisao_muda_ao_criar_execucao_e_passo():
     assert r1 != r2
 
 
+def test_pasta_estatica_persistente_quando_congelado(monkeypatch, tmp_path):
+    import sys
+
+    from core.monitor import servidor
+
+    origem = tmp_path / "bundled"
+    origem.mkdir()
+    (origem / "index.html").write_text("capivara", encoding="utf-8")
+
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(servidor, "PASTA_DATA", tmp_path / "dados")
+    destino = servidor._pasta_estatica_persistente(origem, "monitor")
+
+    assert destino == tmp_path / "dados" / "estatico" / "monitor"
+    assert (destino / "index.html").read_text(encoding="utf-8") == "capivara"
+
+    monkeypatch.setattr(sys, "frozen", False, raising=False)
+    assert servidor._pasta_estatica_persistente(origem, "monitor") == origem
+
+
 def test_conectar_fecha_conexao(monkeypatch):
     import sqlite3
 

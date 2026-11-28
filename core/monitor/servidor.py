@@ -21,7 +21,9 @@ from __future__ import annotations
 import argparse
 import json
 import mimetypes
+import shutil
 import ssl
+import sys
 import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -42,9 +44,32 @@ from core.monitor.banco import (
     revisao,
     ultimos_passos,
 )
-from settings.parametros import ABRIR_PAINEL, HOST_MONITOR, PORTA_MONITOR, TLS_CERT, TLS_CHAVE
+from settings.parametros import (
+    ABRIR_PAINEL,
+    HOST_MONITOR,
+    PASTA_DATA,
+    PORTA_MONITOR,
+    TLS_CERT,
+    TLS_CHAVE,
+)
 
-PASTA_ESTATICO = Path(__file__).resolve().parent / "estatico"
+
+def _pasta_estatica_persistente(caminho: Path, nome: str) -> Path:
+    if not getattr(sys, "frozen", False):
+        return caminho
+    destino = PASTA_DATA / "estatico" / nome
+    try:
+        destino.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(caminho, destino, dirs_exist_ok=True)
+    except OSError as erro:
+        logger.warning("Falha ao copiar estáticos {} para {}: {}", caminho, destino, erro)
+        return caminho
+    return destino
+
+
+PASTA_ESTATICO = _pasta_estatica_persistente(
+    Path(__file__).resolve().parent / "estatico", "monitor"
+)
 
 _MIME_EXTRA = {
     ".js": "text/javascript; charset=utf-8",
